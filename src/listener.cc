@@ -24,7 +24,7 @@ namespace loquat
         close(listen_fd_);
     }
 
-    void Listener::Listen4(const string& ip4addr, int port)
+    void Listener::Listen(const string& ip4addr, int port)
     {
         struct sockaddr_in addr = {0};
 

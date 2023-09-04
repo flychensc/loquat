@@ -17,6 +17,8 @@ namespace loquat
         conn_fd_ = socket(AF_INET, SOCK_STREAM, 0);
         if (conn_fd_ == -1)
             throw runtime_error("socket");
+
+        Stream::Sock(conn_fd_);
     }
 
     Connector::~Connector()
@@ -24,7 +26,7 @@ namespace loquat
         close(conn_fd_);
     }
 
-    void Connector::Bind4(const string& ip4addr, int port)
+    void Connector::Bind(const string& ip4addr, int port)
     {
         struct sockaddr_in addr = {0};
 
@@ -38,7 +40,7 @@ namespace loquat
             throw runtime_error("bind");
     }
 
-    void Connector::Connect4(const string& ip4addr, int port)
+    void Connector::Connect(const string& ip4addr, int port)
     {
         struct sockaddr_in addr = {0};
 

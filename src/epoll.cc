@@ -51,6 +51,7 @@ namespace loquat
             throw runtime_error("epoll_ctl: EPOLL_CTL_DEL(sock_fd)");
 
         /*2. erase*/
+        ctrl_fds_.erase(sock_fd);
     }
 
     void Epoll::Wait()
@@ -103,7 +104,15 @@ namespace loquat
         SetNonBlock(conn_fd);
 
         /*3. lookup*/
-        /*4. callback*/
+        if (ctrl_fds_.count(listen_sock) == 1)
+        {
+            auto ops = ctrl_fds_.at(listen_sock);
+            if (ops.accept_callback_ != nullptr)
+            {
+                /*4. callback*/
+                ops.accept_callback_(conn_fd);
+            }
+        }
     }
 
     void Epoll::onConnect(int conn_sock)
@@ -129,26 +138,55 @@ namespace loquat
         /*1.close socket*/
         close(sock_fd);
         /*2. lookup*/
-        /*3. callback*/
+        if (ctrl_fds_.count(sock_fd) == 1)
+        {
+            auto ops = ctrl_fds_.at(sock_fd);
+            if (ops.close_callback_ != nullptr)
+            {
+                /*3. callback*/
+                ops.close_callback_(sock_fd);
+            }
+        }
         /*4. erase*/
+        ctrl_fds_.erase(sock_fd);
     }
 
     void Epoll::OnSocketRead(int sock_fd)
     {
         /*1. lookup*/
-        /*2. callback*/
+        if (ctrl_fds_.count(sock_fd) == 1)
+        {
+            auto ops = ctrl_fds_.at(sock_fd);
+            if (ops.recv_callback_ != nullptr)
+            {
+                /*2. callback*/
+                ops.recv_callback_(sock_fd);
+            }
+        }
     }
 
     void Epoll::OnSocketWrite(int sock_fd)
     {
         /*1. lookup*/
-        /*2. callback*/
+        if (ctrl_fds_.count(sock_fd) == 1)
+        {
+            auto ops = ctrl_fds_.at(sock_fd);
+            if (ops.send_callback_ != nullptr)
+            {
+                /*2. callback*/
+                ops.send_callback_(sock_fd);
+            }
+        }
     }
 
     bool Epoll::isListenFd(int fd)
     {
         /*1. lookup*/
-        // todo:
-        return true;
+        if (ctrl_fds_.count(fd) == 1)
+        {
+            auto ops = ctrl_fds_.at(fd);
+            return ops.accept_callback_ != nullptr;
+        }
+        return false;
     }
 }

@@ -3,10 +3,11 @@
 #include <string>
 
 #include "epoll.h"
+#include "stream.h"
 
 namespace loquat
 {
-    class Connector
+    class Connector : public Stream
     {
         public:
             Connector(Epoll& poller);
@@ -15,8 +16,8 @@ namespace loquat
             Connector( const Connector& ) = delete;
             Connector( Connector&& ) = delete;
 
-            void Bind4(const std::string& ip4addr, int port);
-            void Connect4(const std::string& ip4addr, int port);
+            void Bind(const std::string& ip4addr, int port);
+            void Connect(const std::string& ip4addr, int port);
         private:
             int conn_fd_;
             Epoll& epoll_;

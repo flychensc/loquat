@@ -11,6 +11,6 @@ int main( int argc,      // Number of strings in array argv
 {
     Epoll poller = Epoll();
     Listener listener = Listener(poller);
-    listener.Listen4("127.0.0.1", 12138);
+    listener.Listen("127.0.0.1", 12138);
     return 0;
 }

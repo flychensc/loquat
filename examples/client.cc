@@ -11,6 +11,6 @@ int main( int argc,      // Number of strings in array argv
 {
     Epoll poller = Epoll();
     Connector connector = Connector(poller);
-    connector.Connect4("127.0.0.1", 12138);
+    connector.Connect("127.0.0.1", 12138);
     return 0;
 }
