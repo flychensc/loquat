@@ -11,6 +11,23 @@ int main( int argc,      // Number of strings in array argv
 {
     Epoll poller = Epoll();
     Listener listener = Listener(poller);
+
+    auto connect_call = [&listener](Stream& stream) -> void {
+
+        stream.RegisterOnRecvCallback([&stream](std::vector<Byte>& data) -> void {
+            std::cout << "Receive " << data.size() << " bytes:" << std::endl;
+            std::cout << data.data() << std::endl;
+
+            stream.WantRecv(100);
+
+            // echo
+            stream.Send(data);
+        });
+
+        stream.WantRecv(100);
+    };
+
+    listener.RegisterOnConnectCallback(connect_call);
     listener.Listen("127.0.0.1", 12138);
     return 0;
 }

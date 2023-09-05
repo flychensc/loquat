@@ -13,6 +13,28 @@ namespace loquat
     void Stream::Send(vector<Byte>& data)
     {
         auto& outbuf = io_buffer_.write_queue_;
+        outbuf.push_back(data);
+    }
+
+    void Stream::WantRecv()
+    {
+        io_buffer_.read_any_ = true;
+
+        io_buffer_.read_bytes_ = 0;
+        io_buffer_.bytes_needed_ = 0;
+    }
+
+    void Stream::WantRecv(std::size_t bytes_needed)
+    {
+        io_buffer_.read_any_ = false;
+
+        io_buffer_.read_bytes_ = 0;
+        io_buffer_.bytes_needed_ = bytes_needed;
+    }
+
+    void Stream::onSend()
+    {
+        auto& outbuf = io_buffer_.write_queue_;
 
         while(!outbuf.empty())
         {
@@ -21,7 +43,7 @@ namespace loquat
             auto buf = msg.data()+io_buffer_.write_queue_head_offset_;
             auto len = msg.size()-io_buffer_.write_queue_head_offset_;
 
-            auto written = send(sock_fd_, buf, len, 0);
+            auto written = ::send(conn_fd_, buf, len, 0);
 
             if (written < 0)
             {
@@ -49,6 +71,27 @@ namespace loquat
 
     void Stream::onRecv()
     {
+        io_buffer_.read_any_?
+            recvRaw():
+            recvAdv();
+
+        if (io_buffer_.bytes_needed_ != 0)
+        {
+            /* incomplete data */
+            return;
+        }
+        io_buffer_.read_bytes_ = 0;
+        io_buffer_.bytes_needed_ = 0;
+
+        // invoke callback
+        if (recv_callback_ != nullptr)
+        {
+            recv_callback_(io_buffer_.read_buffer_);
+        }
+    }
+
+    void Stream::recvAdv()
+    {
         auto& inbuf = io_buffer_.read_buffer_;
 
         assert(io_buffer_.read_bytes_+io_buffer_.bytes_needed_ <= inbuf.size());
@@ -56,7 +99,7 @@ namespace loquat
         auto buf = inbuf.data() + io_buffer_.read_bytes_;
         auto len = io_buffer_.bytes_needed_;
 
-        auto bytes_in = recv(sock_fd_, buf, len, 0);
+        auto bytes_in = ::recv(conn_fd_, buf, len, 0);
         if (bytes_in <= 0)
         {
             if (bytes_in == 0)
@@ -75,5 +118,32 @@ namespace loquat
 
         io_buffer_.read_bytes_ += bytes_in;
         io_buffer_.bytes_needed_ -= bytes_in;
+    }
+
+    void Stream::recvRaw()
+    {
+        auto& inbuf = io_buffer_.read_buffer_;
+
+        auto buf = inbuf.data();
+        auto len = inbuf.size();
+
+        auto bytes_in = ::recv(conn_fd_, buf, len, 0);
+        if (bytes_in <= 0)
+        {
+            if (bytes_in == 0)
+            {
+                /* Socket is closed */
+                throw runtime_error("Stream is closed");
+            }
+
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                return;
+            }
+
+            throw runtime_error("Error reading from stream");
+        }
+
+        io_buffer_.read_bytes_ = bytes_in;
     }
 }

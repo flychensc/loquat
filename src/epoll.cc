@@ -14,34 +14,37 @@ namespace loquat
 
     void SetNonBlock(int sfd)
     {
-        fcntl(sfd, F_SETFL, fcntl(sfd, F_GETFL) | O_NONBLOCK);
+        ::fcntl(sfd, F_SETFL, ::fcntl(sfd, F_GETFL) | O_NONBLOCK);
     }
 
     Epoll::Epoll(int maxevents) :
         maxevents_(maxevents)
     {
-        epollfd_ = epoll_create1(0);
+        epollfd_ = ::epoll_create1(0);
         if (epollfd_ == -1)
             throw runtime_error("epoll_create1");
     }
 
     Epoll::~Epoll()
     {
-        close(epollfd_);
+        ::close(epollfd_);
     }
 
     void Epoll::Join(int listen_sock, callback_accept_t accept_callback)
     {
         struct epoll_event ev;
 
-        /*1.insert*/
+        /*1.set non-block*/
+        SetNonBlock(listen_sock);
+
+        /*2.insert*/
         fd_callback_.insert({listen_sock, EventOPs(accept_callback, nullptr, nullptr, nullptr)});
 
-        /*2.add to epoll*/
+        /*3.add to epoll*/
         ev.events = EPOLLIN;
         ev.data.fd = listen_sock;
 
-        if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, listen_sock, &ev) == -1)
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, listen_sock, &ev) == -1)
             throw runtime_error("epoll_ctl: EPOLL_CTL_ADD(listen_sock)");
     }
 
@@ -49,14 +52,17 @@ namespace loquat
     {
         struct epoll_event ev;
 
-        /*1.insert*/
+        /*1.set non-block*/
+        SetNonBlock(conn_sock);
+
+        /*2.insert*/
         fd_callback_.insert({conn_sock, EventOPs(nullptr, recv_callback, send_callback, close_callback)});
 
-        /*2.add to epoll*/
+        /*3.add to epoll*/
         ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
         ev.data.fd = conn_sock;
 
-        if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, conn_sock, &ev) == -1)
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, conn_sock, &ev) == -1)
             throw runtime_error("epoll_ctl: EPOLL_CTL_ADD(conn_sock)");
     }
 
@@ -64,21 +70,24 @@ namespace loquat
     {
         struct epoll_event ev;
 
-        /*1.insert*/
+        /*1.set non-block*/
+        SetNonBlock(peer_sock);
+
+        /*2.insert*/
         fd_callback_.insert({peer_sock, EventOPs(nullptr, recv_callback, send_callback, nullptr)});
 
-        /*2.add to epoll*/
+        /*3.add to epoll*/
         ev.events = EPOLLIN | EPOLLOUT;
         ev.data.fd = peer_sock;
 
-        if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, peer_sock, &ev) == -1)
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, peer_sock, &ev) == -1)
             throw runtime_error("epoll_ctl: EPOLL_CTL_ADD(peer_sock)");
     }
 
     void Epoll::Leave(int sock_fd)
     {
         /*1.delete from epoll*/
-        if (epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
             throw runtime_error("epoll_ctl: EPOLL_CTL_DEL(sock_fd)");
 
         /*2. erase*/
@@ -92,7 +101,7 @@ namespace loquat
 
         for(;;)
         {
-            nfds = epoll_wait(epollfd_, events, maxevents_, -1);
+            nfds = ::epoll_wait(epollfd_, events, maxevents_, -1);
 
             for(i = 0; i < nfds; ++i)
             {
@@ -100,20 +109,23 @@ namespace loquat
                 {
                     OnSocketAccept(events[i].data.fd);
                 }
-
-                if (events[i].events & EPOLLIN)
+                else
                 {
-                    OnSocketRead(events[i].data.fd);
-                }
+                    if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
+                    {
+                        onSocketClose(events[i].data.fd);
+                        continue;
+                    }
 
-                if (events[i].events & EPOLLOUT)
-                {
-                    OnSocketWrite(events[i].data.fd);
-                }
+                    if (events[i].events & EPOLLIN)
+                    {
+                        OnSocketRead(events[i].data.fd);
+                    }
 
-                if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
-                {
-                    onSocketClose(events[i].data.fd);
+                    if (events[i].events & EPOLLOUT)
+                    {
+                        OnSocketWrite(events[i].data.fd);
+                    }
                 }
             }
         }
@@ -127,7 +139,7 @@ namespace loquat
         struct epoll_event ev;
 
         /*1.accept new connection*/
-        conn_fd = accept(listen_sock, (struct sockaddr *)&addr, &addrlen);
+        conn_fd = ::accept(listen_sock, (struct sockaddr *)&addr, &addrlen);
         if(conn_fd == -1)
             throw runtime_error("accept");
 
@@ -149,11 +161,11 @@ namespace loquat
     void Epoll::onSocketClose(int sock_fd)
     {
         /*1.delete from epoll*/
-        if (epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
             throw runtime_error("epoll_ctl: EPOLL_CTL_DEL(sock_fd)");
 
         /*1.close socket*/
-        close(sock_fd);
+        ::close(sock_fd);
         /*2. lookup*/
         if (fd_callback_.count(sock_fd) == 1)
         {

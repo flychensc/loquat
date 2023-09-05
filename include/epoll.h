@@ -5,9 +5,10 @@
 
 namespace loquat
 {
+    void SetNonBlock(int sfd);
+
     class Epoll
     {
-        friend void SetNonBlock(int sfd);
 
         using callback_accept_t = std::function<void(int conn_sock)>;
         using callback_recv_t = std::function<void(int sock)>;

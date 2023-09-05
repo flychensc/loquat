@@ -19,7 +19,6 @@ namespace loquat
             void Bind(const std::string& ip4addr, int port);
             void Connect(const std::string& ip4addr, int port);
         private:
-            int conn_fd_;
             Epoll& epoll_;
     };
 }
