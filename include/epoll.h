@@ -23,6 +23,9 @@ namespace loquat
             Epoll() : Epoll(kMaxEvents) {};
             ~Epoll();
 
+            Epoll(const Epoll&) = delete;
+            Epoll(Epoll&&) = delete;
+
             // for Listener
             void Join(int listen_sock, callback_accept_t accept_callback);
             // for Connector

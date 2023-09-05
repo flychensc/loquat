@@ -35,7 +35,7 @@ namespace loquat
         struct epoll_event ev;
 
         /*1.insert*/
-        fd_callback_.insert({listen_sock, tuple(accept_callback, nullptr, nullptr, nullptr)});
+        fd_callback_.insert({listen_sock, EventOPs(accept_callback, nullptr, nullptr, nullptr)});
 
         /*2.add to epoll*/
         ev.events = EPOLLIN;
@@ -50,7 +50,7 @@ namespace loquat
         struct epoll_event ev;
 
         /*1.insert*/
-        fd_callback_.insert({conn_sock, tuple(nullptr, recv_callback, send_callback, close_callback)});
+        fd_callback_.insert({conn_sock, EventOPs(nullptr, recv_callback, send_callback, close_callback)});
 
         /*2.add to epoll*/
         ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
@@ -65,7 +65,7 @@ namespace loquat
         struct epoll_event ev;
 
         /*1.insert*/
-        fd_callback_.insert({peer_sock, tuple(nullptr, recv_callback, send_callback, nullptr)});
+        fd_callback_.insert({peer_sock, EventOPs(nullptr, recv_callback, send_callback, nullptr)});
 
         /*2.add to epoll*/
         ev.events = EPOLLIN | EPOLLOUT;
