@@ -20,5 +20,7 @@ namespace loquat
             void Connect(const std::string& ip4addr, int port);
         private:
             Epoll& epoll_;
+
+            void onConnect();
     };
 }

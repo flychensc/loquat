@@ -21,7 +21,7 @@ int main( int argc,      // Number of strings in array argv
             stream.WantRecv(100);
 
             // echo
-            stream.Send(data);
+            stream.Enqueue(data);
         });
 
         stream.WantRecv(100);

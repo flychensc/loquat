@@ -34,13 +34,10 @@ namespace loquat
     {
         struct epoll_event ev;
 
-        /*1.set non-block*/
-        SetNonBlock(listen_sock);
-
-        /*2.insert*/
+        /*1.insert*/
         fd_callback_.insert({listen_sock, EventOPs(accept_callback, nullptr, nullptr, nullptr)});
 
-        /*3.add to epoll*/
+        /*2.add to epoll*/
         ev.events = EPOLLIN;
         ev.data.fd = listen_sock;
 
@@ -52,13 +49,10 @@ namespace loquat
     {
         struct epoll_event ev;
 
-        /*1.set non-block*/
-        SetNonBlock(conn_sock);
-
-        /*2.insert*/
+        /*1.insert*/
         fd_callback_.insert({conn_sock, EventOPs(nullptr, recv_callback, send_callback, close_callback)});
 
-        /*3.add to epoll*/
+        /*2.add to epoll*/
         ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
         ev.data.fd = conn_sock;
 
@@ -70,13 +64,10 @@ namespace loquat
     {
         struct epoll_event ev;
 
-        /*1.set non-block*/
-        SetNonBlock(peer_sock);
-
-        /*2.insert*/
+        /*1.insert*/
         fd_callback_.insert({peer_sock, EventOPs(nullptr, recv_callback, send_callback, nullptr)});
 
-        /*3.add to epoll*/
+        /*2.add to epoll*/
         ev.events = EPOLLIN | EPOLLOUT;
         ev.data.fd = peer_sock;
 

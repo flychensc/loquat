@@ -15,7 +15,7 @@ namespace loquat
             Stream() : conn_fd_(-1) {};
             Stream(int fd) : conn_fd_(fd) {};
 
-            void Send(std::vector<Byte>& data);
+            void Enqueue(std::vector<Byte>& data);
             void RegisterOnRecvCallback(callback_recv_t callback) { recv_callback_ = callback; };
 
             void WantRecv();

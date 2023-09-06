@@ -26,8 +26,8 @@ int main( int argc,      // Number of strings in array argv
     };
     connector.RegisterOnRecvCallback(recv_call);
 
+    connector.Enqueue(data);
     connector.Connect("127.0.0.1", 12138);
-    connector.Send(data);
 
     return 0;
 }

@@ -10,7 +10,7 @@ namespace loquat
 {
     using namespace std;
 
-    void Stream::Send(vector<Byte>& data)
+    void Stream::Enqueue(vector<Byte>& data)
     {
         auto& outbuf = io_buffer_.write_queue_;
         outbuf.push_back(data);

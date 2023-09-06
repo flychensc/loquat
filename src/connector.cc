@@ -14,18 +14,14 @@ namespace loquat
     Connector::Connector(Epoll& poller) :
         epoll_(poller)
     {
-        conn_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
+        conn_fd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (conn_fd_ == -1)
             throw runtime_error("socket");
 
-        epoll_.Join(conn_fd_,
+        epoll_.Join(conn_fd_, nullptr,
             [this](int fd) -> void {
-                onRecv();
-            },
-            [this](int fd) -> void {
-                onSend();
-            },
-            nullptr);
+                onConnect();
+            }, nullptr);
     }
 
     Connector::~Connector()
@@ -59,6 +55,32 @@ namespace loquat
             throw runtime_error("inet_pton");
 
         if (::connect(conn_fd_, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1)
-            throw runtime_error("connect");
+        {
+            if (errno != EINPROGRESS)
+                throw runtime_error("connect");
+        }
+
+        epoll_.Wait();
+    }
+
+    void Connector::onConnect()
+    {
+        int optval;
+        socklen_t optlen = sizeof(optval);
+
+        if (::getsockopt(conn_fd_, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
+            throw runtime_error("getsockopt");
+        if (optval != 0)
+            throw runtime_error("connect error");
+
+        epoll_.Leave(conn_fd_);
+        epoll_.Join(conn_fd_,
+            [this](int fd) -> void {
+                onRecv();
+            },
+            [this](int fd) -> void {
+                onSend();
+            },
+            nullptr);
     }
 }

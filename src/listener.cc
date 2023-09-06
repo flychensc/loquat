@@ -15,7 +15,7 @@ namespace loquat
         backlog_(max_connections),
         epoll_(poller)
     {
-        listen_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
+        listen_fd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (listen_fd_ == -1)
             throw runtime_error("socket");
 
@@ -37,6 +37,11 @@ namespace loquat
 
     void Listener::Listen(const string& ip4addr, int port)
     {
+        int optval = 1;
+        socklen_t optlen = sizeof(optval);
+        if (::setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &optval, optlen) == -1)
+            throw runtime_error("setsockopt");
+
         struct sockaddr_in addr = {0};
 
         addr.sin_family = AF_INET;
