@@ -17,10 +17,11 @@ int main( int argc,      // Number of strings in array argv
     auto msg = std::string("Hello World");
     std::vector<Byte> data(msg.data(), msg.data()+msg.size());
 
-    auto recv_call = [&connector](std::vector<Byte>& data) -> void {
+    auto recv_call = [&connector, &poller](std::vector<Byte>& data) -> void {
         std::cout << "Receive " << data.size() << " bytes:" << std::endl;
         std::cout << data.data() << std::endl;
 
+        poller.Terminate();
         return;
     };
     connector.RegisterOnRecvCallback(recv_call);

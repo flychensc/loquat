@@ -90,7 +90,8 @@ namespace loquat
         int i, nfds;
         struct epoll_event events[maxevents_];
 
-        for(;;)
+        loop_flag_ = true;
+        while(loop_flag_)
         {
             nfds = ::epoll_wait(epollfd_, events, maxevents_, -1);
 
@@ -120,6 +121,11 @@ namespace loquat
                 }
             }
         }
+    }
+
+    void Epoll::Terminate()
+    {
+        loop_flag_ = false;
     }
 
     void Epoll::OnSocketAccept(int listen_sock)

@@ -36,9 +36,11 @@ namespace loquat
             void Leave(int sock_fd);
 
             void Wait();
+            void Terminate();
         private:
             int epollfd_;
             int maxevents_;
+            bool loop_flag_;
 
             // handle tcp accept event
             void OnSocketAccept(int listen_sock);
