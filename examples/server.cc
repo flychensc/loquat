@@ -18,13 +18,9 @@ int main( int argc,      // Number of strings in array argv
             std::cout << "Receive " << data.size() << " bytes:" << std::endl;
             std::cout << data.data() << std::endl;
 
-            stream.WantRecv(100);
-
             // echo
             stream.Enqueue(data);
         });
-
-        stream.WantRecv(100);
     };
 
     listener.RegisterOnConnectCallback(connect_call);

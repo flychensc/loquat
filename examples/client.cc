@@ -21,7 +21,6 @@ int main( int argc,      // Number of strings in array argv
         std::cout << "Receive " << data.size() << " bytes:" << std::endl;
         std::cout << data.data() << std::endl;
 
-        connector.WantRecv(100);
         return;
     };
     connector.RegisterOnRecvCallback(recv_call);

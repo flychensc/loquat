@@ -71,6 +71,8 @@ namespace loquat
 
     void Stream::onRecv()
     {
+        vector<Byte> recv_data;
+
         io_buffer_.read_any_?
             recvRaw():
             recvAdv();
@@ -80,13 +82,16 @@ namespace loquat
             /* incomplete data */
             return;
         }
+
+        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin()+io_buffer_.read_bytes_);
+
         io_buffer_.read_bytes_ = 0;
         io_buffer_.bytes_needed_ = 0;
 
         // invoke callback
         if (recv_callback_ != nullptr)
         {
-            recv_callback_(io_buffer_.read_buffer_);
+            recv_callback_(recv_data);
         }
     }
 

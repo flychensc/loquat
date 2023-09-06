@@ -14,7 +14,7 @@ namespace loquat
 
         IOBuffer() : read_any_(true),
             read_bytes_(0),
-            bytes_needed_(kReadBufferSize),
+            bytes_needed_(0),
             write_queue_head_offset_(0)
             {
                 read_buffer_.resize(kReadBufferSize);
