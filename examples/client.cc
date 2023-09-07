@@ -7,6 +7,8 @@
 
 using namespace loquat;
 
+static Epoll poller;
+
 class ImplConnector : public Connector
 {
     public:
@@ -14,6 +16,9 @@ class ImplConnector : public Connector
         {
             std::cout << "Receive " << data.size() << " bytes:" << std::endl;
             std::cout << data.data() << std::endl;
+
+            //poller.Leave(Sock());
+            poller.Terminate();
         }
 };
 
@@ -21,7 +26,6 @@ int main( int argc,      // Number of strings in array argv
           char *argv[],   // Array of command-line argument strings
           char *envp[] )  // Array of environment variable strings
 {
-    Epoll poller;
     auto p_connector = std::make_shared<ImplConnector>();
 
     poller.Join(p_connector->Sock(), p_connector);

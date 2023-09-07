@@ -14,17 +14,16 @@ namespace loquat
 
     Connection::Connection(int listen_fd)
     {
-        int conn_fd;
         struct sockaddr_in addr = {0};
-        socklen_t addrlen;
+        socklen_t addrlen = sizeof(struct sockaddr_in);
 
         /*1.accept new connection*/
-        conn_fd = ::accept(listen_fd, (struct sockaddr *)&addr, &addrlen);
-        if(conn_fd == -1)
+        sock_fd_ = ::accept(listen_fd, (struct sockaddr *)&addr, &addrlen);
+        if(sock_fd_ == -1)
             throw runtime_error("accept");
 
         /*2.set non-block*/
-        ::fcntl(conn_fd, F_SETFL, ::fcntl(conn_fd, F_GETFL) | O_NONBLOCK);
+        ::fcntl(sock_fd_, F_SETFL, ::fcntl(sock_fd_, F_GETFL) | O_NONBLOCK);
     }
 
     Connection::~Connection()
