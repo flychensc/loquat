@@ -7,27 +7,32 @@
 
 using namespace loquat;
 
+class ImplConnector : public Connector
+{
+    public:
+        void OnRecv(std::vector<Byte>& data) override
+        {
+            std::cout << "Receive " << data.size() << " bytes:" << std::endl;
+            std::cout << data.data() << std::endl;
+        }
+};
+
 int main( int argc,      // Number of strings in array argv
           char *argv[],   // Array of command-line argument strings
           char *envp[] )  // Array of environment variable strings
 {
     Epoll poller;
-    Connector connector(poller);
+    auto p_connector = std::make_shared<ImplConnector>();
+
+    poller.Join(p_connector->Sock(), p_connector);
 
     auto msg = std::string("Hello World");
     std::vector<Byte> data(msg.data(), msg.data()+msg.size());
+    p_connector->Enqueue(data);
 
-    auto recv_call = [&connector, &poller](std::vector<Byte>& data) -> void {
-        std::cout << "Receive " << data.size() << " bytes:" << std::endl;
-        std::cout << data.data() << std::endl;
+    p_connector->Connect("127.0.0.1", 12138);
 
-        poller.Terminate();
-        return;
-    };
-    connector.RegisterOnRecvCallback(recv_call);
-
-    connector.Enqueue(data);
-    connector.Connect("127.0.0.1", 12138);
+    poller.Wait();
 
     return 0;
 }

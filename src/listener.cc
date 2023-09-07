@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -11,27 +12,36 @@ namespace loquat
 {
     using namespace std;
 
-    Listener::Listener(Epoll& poller, int max_connections) :
-        backlog_(max_connections),
-        epoll_(poller)
+    Connection::Connection(int listen_fd)
+    {
+        int conn_fd;
+        struct sockaddr_in addr = {0};
+        socklen_t addrlen;
+
+        /*1.accept new connection*/
+        conn_fd = ::accept(listen_fd, (struct sockaddr *)&addr, &addrlen);
+        if(conn_fd == -1)
+            throw runtime_error("accept");
+
+        /*2.set non-block*/
+        ::fcntl(conn_fd, F_SETFL, ::fcntl(conn_fd, F_GETFL) | O_NONBLOCK);
+    }
+
+    Connection::~Connection()
+    {
+        ::close(sock_fd_);
+    }
+
+    Listener::Listener(int max_connections) :
+        backlog_(max_connections)
     {
         listen_fd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (listen_fd_ == -1)
             throw runtime_error("socket");
-
-        epoll_.Join(listen_fd_,
-            [this](int fd) -> void {
-                onConnect(fd);
-            });
     }
 
     Listener::~Listener()
     {
-        for(auto&connection : connections_)
-        {
-            epoll_.Leave(connection.first);
-        }
-        epoll_.Leave(listen_fd_);
         ::close(listen_fd_);
     }
 
@@ -55,38 +65,5 @@ namespace loquat
 
         if (::listen(listen_fd_, backlog_) == -1)
             throw runtime_error("bind");
-
-        epoll_.Wait();
-    }
-
-    void Listener::onConnect(int fd)
-    {
-        connections_.insert({fd, Stream(fd)});
-
-        if (connect_callback_ != nullptr)
-        {
-            connect_callback_(connections_.at(fd));
-        }
-
-        epoll_.Join(fd,
-            [this](int fd) -> void {
-                connections_.at(fd).onRecv();
-            },
-            [this](int fd) -> void {
-                connections_.at(fd).onSend();
-            },
-            [this](int fd) -> void {
-                onDisconnect(fd);
-            });
-    }
-
-    void Listener::onDisconnect(int fd)
-    {
-        if (disconnect_callback_ != nullptr)
-        {
-            disconnect_callback_(connections_.at(fd));
-        }
-
-        connections_.erase(fd);
     }
 }

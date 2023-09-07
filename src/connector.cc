@@ -11,23 +11,16 @@ namespace loquat
 {
     using namespace std;
 
-    Connector::Connector(Epoll& poller) :
-        epoll_(poller)
+    Connector::Connector() : connect_flag_(false)
     {
-        conn_fd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-        if (conn_fd_ == -1)
+        sock_fd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+        if (sock_fd_ == -1)
             throw runtime_error("socket");
-
-        epoll_.Join(conn_fd_, nullptr,
-            [this](int fd) -> void {
-                onConnect();
-            }, nullptr);
     }
 
     Connector::~Connector()
     {
-        epoll_.Leave(conn_fd_);
-        ::close(conn_fd_);
+        ::close(sock_fd_);
     }
 
     void Connector::Bind(const string& ip4addr, int port)
@@ -40,7 +33,7 @@ namespace loquat
         if (::inet_pton(AF_INET, ip4addr.c_str(), &addr.sin_addr) == -1)
             throw runtime_error("inet_pton");
 
-        if (::bind(conn_fd_, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1)
+        if (::bind(sock_fd_, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1)
             throw runtime_error("bind");
     }
 
@@ -54,33 +47,31 @@ namespace loquat
         if (::inet_pton(AF_INET, ip4addr.c_str(), &addr.sin_addr) == -1)
             throw runtime_error("inet_pton");
 
-        if (::connect(conn_fd_, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1)
+        if (::connect(sock_fd_, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1)
         {
             if (errno != EINPROGRESS)
                 throw runtime_error("connect");
         }
-
-        epoll_.Wait();
     }
 
-    void Connector::onConnect()
+    void Connector::OnRecv(int sock_fd)
     {
-        int optval;
-        socklen_t optlen = sizeof(optval);
+        if (connect_flag_)
+        {
+            Stream::OnRecv(sock_fd);
+        }
+        else
+        {
+            int optval;
+            socklen_t optlen = sizeof(optval);
 
-        if (::getsockopt(conn_fd_, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
-            throw runtime_error("getsockopt");
-        if (optval != 0)
-            throw runtime_error("connect error");
+            if (::getsockopt(sock_fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
+                throw runtime_error("getsockopt");
+            if (optval != 0)
+                throw runtime_error("connect error");
 
-        epoll_.Leave(conn_fd_);
-        epoll_.Join(conn_fd_,
-            [this](int fd) -> void {
-                onRecv();
-            },
-            [this](int fd) -> void {
-                onSend();
-            },
-            nullptr);
+            /*connected*/
+            connect_flag_ = true;
+        }
     }
 }
