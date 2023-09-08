@@ -7,8 +7,6 @@
 
 using namespace loquat;
 
-static Epoll poller;
-
 class EchoConnector : public Connector
 {
     public:
@@ -17,7 +15,7 @@ class EchoConnector : public Connector
             std::cout << "Receive " << data.size() << " bytes: ";
             std::cout << data.data() << std::endl;
 
-            poller.Terminate();
+            Epoll::GetInstance().Terminate();
         }
 };
 
@@ -27,7 +25,7 @@ int main( int argc,      // Number of strings in array argv
 {
     auto p_connector = std::make_shared<EchoConnector>();
 
-    poller.Join(p_connector->Sock(), p_connector);
+    Epoll::GetInstance().Join(p_connector->Sock(), p_connector);
 
     auto msg = std::string("Hello World");
     std::vector<Byte> data(msg.data(), msg.data()+msg.size());
@@ -38,9 +36,9 @@ int main( int argc,      // Number of strings in array argv
     p_connector->Bind("127.0.0.1", 30018);
     p_connector->Connect("127.0.0.1", 8000);
 
-    poller.Wait();
+    Epoll::GetInstance().Wait();
 
-    poller.Leave(p_connector->Sock());
+    Epoll::GetInstance().Leave(p_connector->Sock());
 
     return 0;
 }

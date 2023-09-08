@@ -5,8 +5,6 @@
 
 using namespace loquat;
 
-static Epoll poller;
-
 class EchoConnection : public Connection
 {
     public:
@@ -34,7 +32,7 @@ class EchoListener : public Listener
         {
             auto connection_ptr = std::make_shared<EchoConnection>(listen_sock);
             std::cout << "Accept " << connection_ptr->Sock() << " from " << listen_sock << std::endl;
-            poller.Join(connection_ptr->Sock(), connection_ptr);
+            Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
         }
 };
 
@@ -44,11 +42,11 @@ int main( int argc,      // Number of strings in array argv
 {
     auto p_listener = std::make_shared<EchoListener>();
 
-    poller.Join(p_listener->Sock(), p_listener);
+    Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
 
     p_listener->Listen("127.0.0.1", 8000);
 
-    poller.Wait();
+    Epoll::GetInstance().Wait();
 
     return 0;
 }

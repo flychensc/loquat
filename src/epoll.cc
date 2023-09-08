@@ -14,6 +14,12 @@ namespace loquat
 {
     using namespace std;
 
+    Epoll& Epoll::GetInstance()
+    {
+        static Epoll single;
+        return single;
+    }
+
     Epoll::Epoll(int maxevents) :
         maxevents_(maxevents)
     {

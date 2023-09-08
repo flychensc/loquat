@@ -12,6 +12,8 @@ namespace loquat
         public:
             static const int kMaxEvents = 20;
 
+            static Epoll& GetInstance();
+
             Epoll(int maxevents);
             Epoll() : Epoll(kMaxEvents) {};
             ~Epoll();
