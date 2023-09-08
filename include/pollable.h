@@ -8,27 +8,24 @@ namespace loquat
             virtual ~Pollable() = default;
     };
 
-    class Acceptable : public Pollable
+    class Acceptable : virtual public Pollable
     {
         public:
             virtual void OnAccept(int listen_sock) = 0;
     };
 
-    class Streamable : public Pollable
+    class ReadWritable : virtual public Pollable
     {
-        public:
-            virtual void OnClose(int sock_fd) = 0;
         protected:
-            virtual void OnRecv(int sock_fd) = 0;
-            virtual void OnSend(int sock_fd) = 0;
+            virtual void OnRead(int sock_fd) = 0;
+            virtual void OnWrite(int sock_fd) = 0;
             friend class Epoll;
     };
 
-    class Unreliable : public Pollable
+    class Closable : virtual public Pollable
     {
-        protected:
-            virtual void OnSocketRecvfrom() = 0;
-            virtual void OnSocketSendto() = 0;
+        public:
+            virtual void OnClose(int sock_fd) = 0;
             friend class Epoll;
     };
 }

@@ -30,4 +30,22 @@ namespace loquat
         /* Bytes already sent out from head of write_queue */
         std::size_t write_queue_head_offset_;
     };
+
+    struct IOBuffer2
+    {
+        static constexpr int kReadBufferSize = 2*1024;
+
+        IOBuffer2() : read_bytes_(0)
+            {
+                read_buffer_.resize(kReadBufferSize);
+            };
+
+        /* Read buffer */
+        std::vector<Byte> read_buffer_;
+        /* Number of bytes currently in read buffer */
+        std::size_t read_bytes_;
+
+        /* Write queue */
+        std::list<std::pair<std::string, std::vector<Byte>>> write_queue_;
+    };
 }

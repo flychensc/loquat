@@ -5,30 +5,34 @@
 #include <string.h>
 #include <sys/socket.h>
 
-#include "stream.h"
+#include "datagram.h"
 
 namespace loquat
 {
     using namespace std;
 
-    void Stream::Enqueue(vector<Byte>& data)
+    void Datagram::Enqueue(std::string& to, std::vector<Byte>& data)
     {
         auto& outbuf = io_buffer_.write_queue_;
-        outbuf.push_back(data);
+        outbuf.push_back(make_pair(to, data));
     }
 
-    void Stream::OnWrite(int sock_fd)
+    void Datagram::OnWrite(int sock_fd)
     {
         auto& outbuf = io_buffer_.write_queue_;
 
         while(!outbuf.empty())
         {
-            auto& msg = outbuf.front();
+            auto& entry = outbuf.front();
+            auto& to = entry.first;
+            auto& msg = entry.second;
 
-            auto buf = msg.data()+io_buffer_.write_queue_head_offset_;
-            auto len = msg.size()-io_buffer_.write_queue_head_offset_;
+            struct sockaddr dest_addr;
+            socklen_t addrlen;
 
-            auto written = ::send(sock_fd, buf, len, 0);
+            // todo:
+
+            auto written = ::sendto(sock_fd, msg.data(), msg.size(), 0, &dest_addr, addrlen);
 
             if (written < 0)
             {
@@ -44,28 +48,27 @@ namespace loquat
                     throw runtime_error(errinfo.str());
                 }
             }
-            else if (written < len)
+            else if (written < msg.size())
             {
-                io_buffer_.write_queue_head_offset_ += written;
+                // [Q] this branch is unreachable, right?
                 return;
-            }
-            else
-            {
-                io_buffer_.write_queue_head_offset_ = 0;
             }
 
             outbuf.pop_front();
         }
     }
 
-    void Stream::OnRead(int sock_fd)
+    void Datagram::OnRead(int sock_fd)
     {
         auto& inbuf = io_buffer_.read_buffer_;
 
         auto buf = inbuf.data();
         auto len = inbuf.size();
 
-        auto bytes_in = ::recv(sock_fd, buf, len, 0);
+        struct sockaddr src_addr;
+        socklen_t addrlen;
+
+        auto bytes_in = ::recvfrom(sock_fd, buf, len, 0, &src_addr, &addrlen);
         if (bytes_in <= 0)
         {
             if (bytes_in == 0)
@@ -91,7 +94,11 @@ namespace loquat
 
         io_buffer_.read_bytes_ = 0;
 
+        string from;
+
+        // todo:
+
         // invoke callback
-        OnRecv(recv_data);
+        OnRecv(from, recv_data);
     }
 }

@@ -39,7 +39,7 @@ namespace loquat
 
     void Epoll::Join(int sock_fd, std::shared_ptr<Pollable> poller_ptr)
     {
-        struct epoll_event ev;
+        struct epoll_event ev = {0};
 
         /*1. insert*/
         fd_pollers_.insert({sock_fd, poller_ptr});
@@ -48,17 +48,17 @@ namespace loquat
         auto acceptable_ptr = std::dynamic_pointer_cast<Acceptable>(poller_ptr);
         if (acceptable_ptr)
         {
-            ev.events = EPOLLIN;
+            ev.events |= EPOLLIN;
         }
-        auto streamalbe_ptr = std::dynamic_pointer_cast<Streamable>(poller_ptr);
-        if (streamalbe_ptr)
+        auto closalbe_ptr = std::dynamic_pointer_cast<Closable>(poller_ptr);
+        if (closalbe_ptr)
         {
-            ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
+            ev.events |= EPOLLRDHUP | EPOLLHUP;
         }
-        auto unreliable_ptr = std::dynamic_pointer_cast<Unreliable>(poller_ptr);
-        if (unreliable_ptr)
+        auto readwritalbe_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
         {
-            ev.events = EPOLLIN | EPOLLOUT;
+            ev.events |= EPOLLIN | EPOLLOUT;
         }
         ev.data.fd = sock_fd;
 
@@ -155,11 +155,11 @@ namespace loquat
         auto poller_ptr = fd_pollers_.at(sock_fd);
         /*3. erase*/
         fd_pollers_.erase(sock_fd);
-        auto streamalbe_ptr = std::dynamic_pointer_cast<Streamable>(poller_ptr);
-        if (streamalbe_ptr)
+        auto closalbe_ptr = std::dynamic_pointer_cast<Closable>(poller_ptr);
+        if (closalbe_ptr)
         {
             /*4. callback*/
-            streamalbe_ptr->OnClose(sock_fd);
+            closalbe_ptr->OnClose(sock_fd);
         }
     }
 
@@ -167,11 +167,11 @@ namespace loquat
     {
         /*1. lookup*/
         auto poller_ptr = fd_pollers_.at(sock_fd);
-        auto streamalbe_ptr = std::dynamic_pointer_cast<Streamable>(poller_ptr);
-        if (streamalbe_ptr)
+        auto readwritalbe_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
         {
             /*2. callback*/
-            streamalbe_ptr->OnRecv(sock_fd);
+            readwritalbe_ptr->OnRead(sock_fd);
         }
     }
 
@@ -179,11 +179,11 @@ namespace loquat
     {
         /*1. lookup*/
         auto poller_ptr = fd_pollers_.at(sock_fd);
-        auto streamalbe_ptr = std::dynamic_pointer_cast<Streamable>(poller_ptr);
-        if (streamalbe_ptr)
+        auto readwritalbe_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
         {
             /*2. callback*/
-            streamalbe_ptr->OnSend(sock_fd);
+            readwritalbe_ptr->OnWrite(sock_fd);
         }
     }
 }

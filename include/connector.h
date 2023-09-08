@@ -26,7 +26,7 @@ namespace loquat
             void Connect(const std::string& ipaddr, int port);
             void Connect(const std::string& unix_path);
 
-            void OnRecv(int sock_fd) override;
+            void OnRead(int sock_fd) override;
         private:
             int domain_;
             int sock_fd_;

@@ -123,11 +123,11 @@ namespace loquat
         }
     }
 
-    void Connector::OnRecv(int sock_fd)
+    void Connector::OnRead(int sock_fd)
     {
         if (connect_flag_)
         {
-            Stream::OnRecv(sock_fd);
+            Stream::OnRead(sock_fd);
         }
         else
         {
