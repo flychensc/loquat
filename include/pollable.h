@@ -18,14 +18,17 @@ namespace loquat
     {
         public:
             virtual void OnClose(int sock_fd) = 0;
+        protected:
             virtual void OnRecv(int sock_fd) = 0;
             virtual void OnSend(int sock_fd) = 0;
+            friend class Epoll;
     };
 
     class Unreliable : public Pollable
     {
-        public:
+        protected:
             virtual void OnSocketRecvfrom() = 0;
             virtual void OnSocketSendto() = 0;
+            friend class Epoll;
     };
 }
