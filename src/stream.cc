@@ -1,6 +1,8 @@
+#include <sstream>
 #include <stdexcept>
 
 #include <errno.h>
+#include <string.h>
 #include <sys/socket.h>
 
 #include "stream.h"
@@ -36,7 +38,11 @@ namespace loquat
                     return;
                 }
                 else
-                    throw runtime_error("Error writing to stream");
+                {
+                    stringstream errinfo;
+                    errinfo << "send:" << strerror(errno);
+                    throw runtime_error(errinfo.str());
+                }
             }
             else if (written < len)
             {
@@ -73,7 +79,9 @@ namespace loquat
                 return;
             }
 
-            throw runtime_error("Error reading from stream");
+            stringstream errinfo;
+            errinfo << "recv:" << strerror(errno);
+            throw runtime_error(errinfo.str());
         }
 
         io_buffer_.read_bytes_ = bytes_in;

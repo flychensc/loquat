@@ -1,6 +1,9 @@
+#include <sstream>
 #include <stdexcept>
 
+#include <errno.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -16,7 +19,11 @@ namespace loquat
     {
         epollfd_ = ::epoll_create1(0);
         if (epollfd_ == -1)
-            throw runtime_error("epoll_create1");
+        {
+            stringstream errinfo;
+            errinfo << "epoll_create1:" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
     }
 
     Epoll::~Epoll()
@@ -50,14 +57,22 @@ namespace loquat
         ev.data.fd = sock_fd;
 
         if (::epoll_ctl(epollfd_, EPOLL_CTL_ADD, sock_fd, &ev) == -1)
-            throw runtime_error("epoll_ctl: EPOLL_CTL_ADD(Join)");
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_ADD(Join):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
     }
 
     void Epoll::Leave(int sock_fd)
     {
         /*1.delete from epoll*/
         if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
-            throw runtime_error("epoll_ctl: EPOLL_CTL_DEL(Leave)");
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_DEL(Leave):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
 
         /*2. erase*/
         fd_pollers_.erase(sock_fd);
@@ -124,7 +139,11 @@ namespace loquat
     {
         /*1.delete from epoll*/
         if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
-            throw runtime_error("epoll_ctl: EPOLL_CTL_DEL(onSocketClose)");
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_DEL(onSocketClose):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
 
         /*2. lookup*/
         auto poller_ptr = fd_pollers_.at(sock_fd);

@@ -3,6 +3,8 @@
 #include <map>
 #include <string>
 
+#include <sys/socket.h>
+
 #include "pollable.h"
 #include "stream.h"
 
@@ -25,10 +27,8 @@ namespace loquat
     class Listener : public Acceptable
     {
         public:
-            static const int kMaxConnections = 20;
-
-            Listener(int max_connections);
-            Listener() : Listener(kMaxConnections) {};
+            Listener(int domain, int max_connections);
+            Listener(int max_connections) : Listener(AF_INET, max_connections) {};
             ~Listener();
 
             Listener( const Listener& ) = delete;
@@ -36,12 +36,11 @@ namespace loquat
 
             int Sock() { return listen_fd_; };
 
-            void Listen(const std::string& ip4addr, int port);
+            void Listen(const std::string& ipaddr, int port);
+            void Listen(const std::string& unix_path);
         private:
+            int domain_;
             int listen_fd_;
             int backlog_;
-
-            void onConnect(int fd);
-            void onDisconnect(int fd);
     };
 }
