@@ -17,7 +17,6 @@ class ImplConnector : public Connector
             std::cout << "Receive " << data.size() << " bytes:" << std::endl;
             std::cout << data.data() << std::endl;
 
-            //poller.Leave(Sock());
             poller.Terminate();
         }
 };
@@ -37,6 +36,8 @@ int main( int argc,      // Number of strings in array argv
     p_connector->Connect("127.0.0.1", 12138);
 
     poller.Wait();
+
+    poller.Leave(p_connector->Sock());
 
     return 0;
 }
