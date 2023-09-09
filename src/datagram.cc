@@ -12,7 +12,7 @@ namespace loquat
 {
     using namespace std;
 
-    void Datagram::Enqueue(struct sockaddr& toaddr, socklen_t addrlen, vector<Byte>& data)
+    void Datagram::Enqueue(struct sockaddr& toaddr, socklen_t addrlen, const vector<Byte>& data)
     {
         auto& outbuf = io_buffer_.write_queue_;
         outbuf.push_back(make_tuple(toaddr, addrlen, data));

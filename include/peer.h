@@ -22,8 +22,8 @@ namespace loquat
             void Bind(const std::string& ipaddr, int port);
             void Bind(const std::string& unix_path);
 
-            void Enqueue(const std::string& to_ip, int port, std::vector<Byte>& data);
-            void Enqueue(const std::string& to_path, std::vector<Byte>& data);
+            void Enqueue(const std::string& to_ip, int port, const std::vector<Byte>& data);
+            void Enqueue(const std::string& to_path, const std::vector<Byte>& data);
         private:
             int domain_;
             int sock_fd_;

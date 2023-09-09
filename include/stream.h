@@ -10,7 +10,7 @@ namespace loquat
     class Stream : public ReadWritable, public Closable
     {
         public:
-            void Enqueue(std::vector<Byte>& data);
+            void Enqueue(const std::vector<Byte>& data);
             virtual void OnRecv(std::vector<Byte>& data) = 0;
 
             void OnClose(int sock_fd) override {};

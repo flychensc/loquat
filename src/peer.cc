@@ -79,7 +79,7 @@ namespace loquat
         }
     }
 
-    void Peer::Enqueue(const std::string& to_ip, int port, std::vector<Byte>& data)
+    void Peer::Enqueue(const std::string& to_ip, int port, const std::vector<Byte>& data)
     {
         struct sockaddr toaddr;
         socklen_t addrlen;
@@ -118,7 +118,7 @@ namespace loquat
         Datagram::Enqueue(toaddr, addrlen, data);
     }
 
-    void Peer::Enqueue(const std::string& to_path, std::vector<Byte>& data)
+    void Peer::Enqueue(const std::string& to_path, const std::vector<Byte>& data)
     {
         struct sockaddr toaddr;
         struct sockaddr_un *addr = (struct sockaddr_un *)&toaddr;
