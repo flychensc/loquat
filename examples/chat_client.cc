@@ -59,7 +59,12 @@ int main( int argc,      // Number of strings in array argv
           char *argv[],   // Array of command-line argument strings
           char *envp[] )  // Array of environment variable strings
 {
-    auto p_client = std::make_shared<ChatClient>("Emma");
+    const char *name = "Emma"; // default
+    if (argc > 1)
+    {
+        name = argv[1];
+    }
+    auto p_client = std::make_shared<ChatClient>(name);
     Epoll::GetInstance().Join(p_client->Sock(), p_client);
 
     auto p_console = std::make_shared<Console>(p_client);
