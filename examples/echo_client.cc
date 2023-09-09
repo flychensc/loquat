@@ -12,8 +12,9 @@ class EchoConnector : public Connector
     public:
         void OnRecv(std::vector<Byte>& data) override
         {
+            std::string str(data.begin(),data.end());
             std::cout << "Receive " << data.size() << " bytes: ";
-            std::cout << data.data() << std::endl;
+            std::cout << str << std::endl;
 
             Epoll::GetInstance().Terminate();
         }

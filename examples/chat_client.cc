@@ -17,7 +17,8 @@ class ChatClient : public Connector
 
         void OnRecv(std::vector<Byte>& data) override
         {
-            std::cout << data.data() << std::endl;
+            std::string str(data.begin(),data.end());
+            std::cout << str << std::endl;
         }
 
         void Say(const std::string& message)
