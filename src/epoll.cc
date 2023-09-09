@@ -37,7 +37,7 @@ namespace loquat
         ::close(epollfd_);
     }
 
-    void Epoll::Join(int sock_fd, std::shared_ptr<Pollable> poller_ptr)
+    void Epoll::Join(int sock_fd, shared_ptr<Pollable> poller_ptr)
     {
         struct epoll_event ev = {0};
 
@@ -45,17 +45,17 @@ namespace loquat
         fd_pollers_.insert({sock_fd, poller_ptr});
 
         /*2.add to epoll*/
-        auto acceptable_ptr = std::dynamic_pointer_cast<Acceptable>(poller_ptr);
+        auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
         if (acceptable_ptr)
         {
             ev.events |= EPOLLIN;
         }
-        auto closalbe_ptr = std::dynamic_pointer_cast<Closable>(poller_ptr);
+        auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
         if (closalbe_ptr)
         {
             ev.events |= EPOLLRDHUP | EPOLLHUP;
         }
-        auto readwritalbe_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
         if (readwritalbe_ptr)
         {
             ev.events |= EPOLLIN | EPOLLOUT;
@@ -97,7 +97,7 @@ namespace loquat
             for(i = 0; i < nfds; ++i)
             {
                 auto poller_ptr = fd_pollers_.at(events[i].data.fd);
-                auto acceptable_ptr = std::dynamic_pointer_cast<Acceptable>(poller_ptr);
+                auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
                 if (acceptable_ptr)
                 {
                     onSocketAccept(events[i].data.fd);
@@ -133,7 +133,7 @@ namespace loquat
     {
         /*1. lookup*/
         auto poller_ptr = fd_pollers_.at(listen_sock);
-        auto acceptable_ptr = std::dynamic_pointer_cast<Acceptable>(poller_ptr);
+        auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
         if (acceptable_ptr)
         {
             /*2. callback*/
@@ -155,7 +155,7 @@ namespace loquat
         auto poller_ptr = fd_pollers_.at(sock_fd);
         /*3. erase*/
         fd_pollers_.erase(sock_fd);
-        auto closalbe_ptr = std::dynamic_pointer_cast<Closable>(poller_ptr);
+        auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
         if (closalbe_ptr)
         {
             /*4. callback*/
@@ -167,7 +167,7 @@ namespace loquat
     {
         /*1. lookup*/
         auto poller_ptr = fd_pollers_.at(sock_fd);
-        auto readwritalbe_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
         if (readwritalbe_ptr)
         {
             /*2. callback*/
@@ -179,7 +179,7 @@ namespace loquat
     {
         /*1. lookup*/
         auto poller_ptr = fd_pollers_.at(sock_fd);
-        auto readwritalbe_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
         if (readwritalbe_ptr)
         {
             /*2. callback*/

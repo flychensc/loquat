@@ -1,3 +1,4 @@
+#include <cassert>
 #include <sstream>
 #include <stdexcept>
 
@@ -11,10 +12,10 @@ namespace loquat
 {
     using namespace std;
 
-    void Datagram::Enqueue(std::string& to, std::vector<Byte>& data)
+    void Datagram::Enqueue(struct sockaddr& toaddr, socklen_t addrlen, vector<Byte>& data)
     {
         auto& outbuf = io_buffer_.write_queue_;
-        outbuf.push_back(make_pair(to, data));
+        outbuf.push_back(make_tuple(toaddr, addrlen, data));
     }
 
     void Datagram::OnWrite(int sock_fd)
@@ -24,13 +25,9 @@ namespace loquat
         while(!outbuf.empty())
         {
             auto& entry = outbuf.front();
-            auto& to = entry.first;
-            auto& msg = entry.second;
-
-            struct sockaddr dest_addr;
-            socklen_t addrlen;
-
-            // todo:
+            auto& dest_addr = get<0>(entry);
+            auto& addrlen = get<1>(entry);
+            auto& msg = get<2>(entry);
 
             auto written = ::sendto(sock_fd, msg.data(), msg.size(), 0, &dest_addr, addrlen);
 
@@ -48,11 +45,8 @@ namespace loquat
                     throw runtime_error(errinfo.str());
                 }
             }
-            else if (written < msg.size())
-            {
-                // [Q] this branch is unreachable, right?
-                return;
-            }
+            // [Q] this branch is unreachable, right?
+            assert(written == msg.size());
 
             outbuf.pop_front();
         }
@@ -60,23 +54,14 @@ namespace loquat
 
     void Datagram::OnRead(int sock_fd)
     {
-        auto& inbuf = io_buffer_.read_buffer_;
-
-        auto buf = inbuf.data();
-        auto len = inbuf.size();
-
         struct sockaddr src_addr;
         socklen_t addrlen;
 
-        auto bytes_in = ::recvfrom(sock_fd, buf, len, 0, &src_addr, &addrlen);
-        if (bytes_in <= 0)
-        {
-            if (bytes_in == 0)
-            {
-                /* Socket is closed */
-                throw runtime_error("Stream is closed");
-            }
+        auto& inbuf = io_buffer_.read_buffer_;
 
+        auto bytes_in = ::recvfrom(sock_fd, inbuf.data(), inbuf.size(), 0, &src_addr, &addrlen);
+        if (bytes_in < 0)
+        {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
                 return;
@@ -94,11 +79,7 @@ namespace loquat
 
         io_buffer_.read_bytes_ = 0;
 
-        string from;
-
-        // todo:
-
         // invoke callback
-        OnRecv(from, recv_data);
+        OnRecv(src_addr, addrlen, recv_data);
     }
 }

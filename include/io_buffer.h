@@ -2,7 +2,10 @@
 
 #include <cinttypes>
 #include <list>
+#include <tuple>
 #include <vector>
+
+#include <sys/socket.h>
 
 namespace loquat
 {
@@ -46,6 +49,6 @@ namespace loquat
         std::size_t read_bytes_;
 
         /* Write queue */
-        std::list<std::pair<std::string, std::vector<Byte>>> write_queue_;
+        std::list<std::tuple<struct sockaddr, socklen_t, std::vector<Byte>>> write_queue_;
     };
 }
