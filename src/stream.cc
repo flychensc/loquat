@@ -71,7 +71,7 @@ namespace loquat
             if (bytes_in == 0)
             {
                 /* Socket is closed */
-                throw runtime_error("Stream is closed");
+                return;
             }
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
