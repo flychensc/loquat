@@ -104,12 +104,6 @@ namespace loquat
                 }
                 else
                 {
-                    if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
-                    {
-                        onSocketClose(events[i].data.fd);
-                        continue;
-                    }
-
                     if (events[i].events & EPOLLIN)
                     {
                         onSocketRead(events[i].data.fd);
@@ -118,6 +112,11 @@ namespace loquat
                     if (events[i].events & EPOLLOUT)
                     {
                         onSocketWrite(events[i].data.fd);
+                    }
+
+                    if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
+                    {
+                        onSocketClose(events[i].data.fd);
                     }
                 }
             }
