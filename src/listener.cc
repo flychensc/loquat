@@ -23,7 +23,7 @@ namespace loquat
 
         /*1.accept new connection*/
         sock_fd_ = ::accept(listen_fd, (struct sockaddr *)&addr, &addrlen);
-        if(sock_fd_ == -1)
+        if (sock_fd_ == -1)
         {
             stringstream errinfo;
             errinfo << "accept:" << strerror(errno);
@@ -39,9 +39,8 @@ namespace loquat
         ::close(sock_fd_);
     }
 
-    Listener::Listener(int domain, int max_connections) :
-        domain_(domain),
-        backlog_(max_connections)
+    Listener::Listener(int domain, int max_connections) : domain_(domain),
+                                                          backlog_(max_connections)
     {
         listen_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (listen_fd_ == -1)
@@ -57,25 +56,47 @@ namespace loquat
         ::close(listen_fd_);
     }
 
-    void Listener::Listen(const string& ipaddr, int port)
+    void Listener::Listen(const string &ipaddr, int port)
     {
         int optval = 1;
         socklen_t optlen = sizeof(optval);
         ::setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &optval, optlen);
 
-        struct sockaddr_in addr = {0};
+        struct sockaddr toaddr;
+        socklen_t addrlen;
 
-        addr.sin_family = domain_;
-        addr.sin_port = ::htons(port);
-
-        if (::inet_pton(domain_, ipaddr.c_str(), &addr.sin_addr) == -1)
+        if (AF_INET == domain_)
         {
-            stringstream errinfo;
-            errinfo << "inet_pton:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            struct sockaddr_in *addr = (struct sockaddr_in *)&toaddr;
+            addrlen = sizeof(struct sockaddr_in);
+
+            addr->sin_family = domain_;
+            addr->sin_port = ::htons(port);
+
+            if (::inet_pton(domain_, ipaddr.c_str(), &addr->sin_addr) != 1)
+            {
+                stringstream errinfo;
+                errinfo << "inet_pton:" << strerror(errno);
+                throw runtime_error(errinfo.str());
+            }
+        }
+        else if (AF_INET6 == domain_)
+        {
+            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&toaddr;
+            addrlen = sizeof(struct sockaddr_in6);
+
+            addr->sin6_family = domain_;
+            addr->sin6_port = ::htons(port);
+
+            if (::inet_pton(domain_, ipaddr.c_str(), &addr->sin6_addr) != 1)
+            {
+                stringstream errinfo;
+                errinfo << "inet_pton:" << strerror(errno);
+                throw runtime_error(errinfo.str());
+            }
         }
 
-        if (::bind(listen_fd_, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+        if (::bind(listen_fd_, &toaddr, addrlen) == -1)
         {
             stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
@@ -90,7 +111,7 @@ namespace loquat
         }
     }
 
-    void Listener::Listen(const string& unix_path)
+    void Listener::Listen(const string &unix_path)
     {
         int optval = 1;
         socklen_t optlen = sizeof(optval);
@@ -103,7 +124,7 @@ namespace loquat
 
         unlink(unix_path.c_str());
 
-        if (::bind(listen_fd_, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+        if (::bind(listen_fd_, (struct sockaddr *)&addr, sizeof(addr)) == -1)
         {
             stringstream errinfo;
             errinfo << "bind:" << strerror(errno);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <map>
 #include <memory>
 
@@ -29,7 +30,7 @@ namespace loquat
         private:
             int epollfd_;
             int maxevents_;
-            bool loop_flag_;
+            std::atomic<bool> loop_flag_;
 
             // handle tcp accept event
             void onSocketAccept(int listen_sock);
