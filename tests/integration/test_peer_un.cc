@@ -1,4 +1,5 @@
 #include <future>
+#include <random>
 
 #include "peer.h"
 #include "epoll.h"
@@ -37,7 +38,7 @@ namespace
         }
     };
 
-    TEST(Peer, send_receive)
+    TEST(Peer_UN, send_receive)
     {
         auto p_peer_s = std::make_shared<TestPeerS>();
         loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
@@ -58,91 +59,79 @@ namespace
         loquat::Epoll::GetInstance().Leave(p_peer_s->Sock());
     }
 
-    class TestPeerS4 : public loquat::Peer
+    class TestEcho : public loquat::Peer
     {
     public:
+        TestEcho() : loquat::Peer(AF_UNIX) {}
+
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
-            EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
-
-            Datagram::Enqueue(fromaddr, addrlen, stringToVector("Good to see you too."));
+            Datagram::Enqueue(fromaddr, addrlen, data);
         }
     };
 
-    class TestPeerC4 : public loquat::Peer
+    class TestShouter : public loquat::Peer
     {
     public:
+        TestShouter() : loquat::Peer(AF_UNIX) {}
+
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
-            EXPECT_EQ(data, stringToVector("Good to see you too."));
+            Echoes.insert(Echoes.end(), data.begin(), data.end());
 
-            loquat::Epoll::GetInstance().Terminate();
+            if (data.size() == 4)
+            {
+                loquat::Epoll::GetInstance().Terminate();
+            }
         }
+
+        void Enqueue(const std::string &to_path, const std::vector<loquat::Byte> &data)
+        {
+            Peer::Enqueue(to_path, data);
+
+            Shouts.insert(Shouts.end(), data.begin(), data.end());
+        }
+
+        std::vector<loquat::Byte> Shouts;
+        std::vector<loquat::Byte> Echoes;
     };
 
-    TEST(Peer, send_receive_v4)
+    TEST(Peer_UN, 10kRuns)
     {
-        auto p_peer_s = std::make_shared<TestPeerS4>();
+        auto p_peer_s = std::make_shared<TestEcho>();
         loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
-        p_peer_s->Bind("127.0.0.1", 16138);
+        p_peer_s->Bind("/tmp/peer_s");
 
-        auto p_peer_c = std::make_shared<TestPeerC4>();
+        auto p_peer_c = std::make_shared<TestShouter>();
         loquat::Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
-        p_peer_c->Bind("127.0.0.1", 27149);
+        p_peer_c->Bind("/tmp/peer_c");
 
         std::future<void> fut = std::async(std::launch::async, []
                                            { loquat::Epoll::GetInstance().Wait(); });
 
-        p_peer_c->Enqueue("127.0.0.1", 16138, stringToVector("Em, it's happy to see you."));
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> length_dist(100, 4 * 1024);
+        std::uniform_int_distribution<> value_dist(0, 255);
+
+        for (int i = 0; i < 10 * 1000; i++)
+        {
+            int length = length_dist(gen);
+            std::vector<loquat::Byte> data(length);
+
+            for (int i = 0; i < length; ++i)
+            {
+                data[i] = static_cast<loquat::Byte>(value_dist(gen));
+            }
+
+            p_peer_c->Enqueue("/tmp/peer_s", data);
+        }
+
+        p_peer_c->Enqueue("/tmp/peer_s", stringToVector("EXIT"));
 
         fut.wait();
 
-        loquat::Epoll::GetInstance().Leave(p_peer_c->Sock());
-        loquat::Epoll::GetInstance().Leave(p_peer_s->Sock());
-    }
-
-    class TestPeerS6 : public loquat::Peer
-    {
-    public:
-        TestPeerS6() : loquat::Peer(AF_INET6) {}
-
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
-        {
-            EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
-
-            Datagram::Enqueue(fromaddr, addrlen, stringToVector("Good to see you too."));
-        }
-    };
-
-    class TestPeerC6 : public loquat::Peer
-    {
-    public:
-        TestPeerC6() : loquat::Peer(AF_INET6) {}
-
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
-        {
-            EXPECT_EQ(data, stringToVector("Good to see you too."));
-
-            loquat::Epoll::GetInstance().Terminate();
-        }
-    };
-
-    TEST(Peer, send_receive_v6)
-    {
-        auto p_peer_s = std::make_shared<TestPeerS6>();
-        loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
-        p_peer_s->Bind("::1", 170504);
-
-        auto p_peer_c = std::make_shared<TestPeerC6>();
-        loquat::Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
-        p_peer_c->Bind("::1", 230510);
-
-        std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
-
-        p_peer_c->Enqueue("::1", 170504, stringToVector("Em, it's happy to see you."));
-
-        fut.wait();
+        EXPECT_EQ(p_peer_c->Shouts, p_peer_c->Echoes);
 
         loquat::Epoll::GetInstance().Leave(p_peer_c->Sock());
         loquat::Epoll::GetInstance().Leave(p_peer_s->Sock());
