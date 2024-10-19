@@ -32,7 +32,7 @@ namespace loquat
 
             if (written < 0)
             {
-                if (errno == EAGAIN)
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
                 {
                     written = 0;
                     return;

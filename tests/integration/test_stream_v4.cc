@@ -80,9 +80,13 @@ namespace
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
-            if (data.size() == 4)
+            if (Echoes.size() >= 4)
             {
-                loquat::Epoll::GetInstance().Terminate();
+                std::string flag(reinterpret_cast<char *>(Echoes.data()) + (Echoes.size() - 4), 4);
+                if (flag == "EXIT")
+                {
+                    loquat::Epoll::GetInstance().Terminate();
+                }
             }
         }
 
