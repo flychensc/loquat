@@ -24,7 +24,7 @@ namespace loquat
 
         while(!outbuf.empty())
         {
-            auto& entry = outbuf.front();
+            auto entry = outbuf.front();
             auto& dest_addr = get<0>(entry);
             auto& addrlen = get<1>(entry);
             auto& msg = get<2>(entry);
@@ -41,7 +41,7 @@ namespace loquat
                 else
                 {
                     stringstream errinfo;
-                    errinfo << "send:" << strerror(errno);
+                    errinfo << "sendto:" << strerror(errno);
                     throw runtime_error(errinfo.str());
                 }
             }
@@ -68,7 +68,7 @@ namespace loquat
             }
 
             stringstream errinfo;
-            errinfo << "recv:" << strerror(errno);
+            errinfo << "recvfrom:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
 

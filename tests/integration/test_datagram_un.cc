@@ -1,4 +1,6 @@
+#include <condition_variable>
 #include <future>
+#include <mutex>
 #include <random>
 
 #include "peer.h"
@@ -77,23 +79,36 @@ namespace
 
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
-            Echoes.insert(Echoes.end(), data.begin(), data.end());
-
-            if (data.size() == 4)
             {
-                loquat::Epoll::GetInstance().Terminate();
+                std::unique_lock lock(mutex_);
+                Echoes.insert(Echoes.end(), data.begin(), data.end());
+
+                if (data.size() == 4)
+                {
+                    loquat::Epoll::GetInstance().Terminate();
+                }
             }
+
+            cv_.notify_all();
         }
 
         void Enqueue(const std::string &to_path, const std::vector<loquat::Byte> &data)
         {
+            std::unique_lock lock(mutex_);
+
             Peer::Enqueue(to_path, data);
 
             Shouts.insert(Shouts.end(), data.begin(), data.end());
+
+            cv_.wait(lock);
         }
 
         std::vector<loquat::Byte> Shouts;
         std::vector<loquat::Byte> Echoes;
+
+    private:
+        std::condition_variable cv_;
+        std::mutex mutex_;
     };
 
     TEST(Datagram_UN, 10kRuns)
@@ -114,7 +129,7 @@ namespace
         std::uniform_int_distribution<> length_dist(100, 1024);
         std::uniform_int_distribution<> value_dist(0, 255);
 
-        for (int i = 0; i < 10 * 1000; i++)
+        for (int c = 0; c < 10 * 1000; c++)
         {
             int length = length_dist(gen);
             std::vector<loquat::Byte> data(length);
@@ -131,6 +146,7 @@ namespace
 
         fut.wait();
 
+        EXPECT_EQ(p_peer_c->Shouts.size(), p_peer_c->Echoes.size());
         EXPECT_EQ(p_peer_c->Shouts, p_peer_c->Echoes);
 
         loquat::Epoll::GetInstance().Leave(p_peer_c->Sock());

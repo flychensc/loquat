@@ -23,7 +23,7 @@ namespace loquat
 
         while(!outbuf.empty())
         {
-            auto& msg = outbuf.front();
+            auto msg = outbuf.front();
 
             auto buf = msg.data()+io_buffer_.write_queue_head_offset_;
             auto len = msg.size()-io_buffer_.write_queue_head_offset_;

@@ -145,7 +145,7 @@ namespace
         std::uniform_int_distribution<> length_dist(100, 1024);
         std::uniform_int_distribution<> value_dist(0, 255);
 
-        for (int i = 0; i < 10 * 1000; i++)
+        for (int c = 0; c < 10 * 1000; c++)
         {
             int length = length_dist(gen);
             std::vector<loquat::Byte> data(length);
