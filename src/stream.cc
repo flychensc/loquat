@@ -13,12 +13,16 @@ namespace loquat
 
     void Stream::Enqueue(const vector<Byte>& data)
     {
+        std::lock_guard lock(mutex_);
+
         auto& outbuf = io_buffer_.write_queue_;
         outbuf.push_back(data);
     }
 
     void Stream::OnWrite(int sock_fd)
     {
+        std::lock_guard lock(mutex_);
+
         auto& outbuf = io_buffer_.write_queue_;
 
         while(!outbuf.empty())
@@ -60,6 +64,8 @@ namespace loquat
 
     void Stream::OnRead(int sock_fd)
     {
+        std::lock_guard lock(mutex_);
+
         auto& inbuf = io_buffer_.read_buffer_;
 
         auto buf = inbuf.data();

@@ -14,12 +14,16 @@ namespace loquat
 
     void Datagram::Enqueue(struct sockaddr& toaddr, socklen_t addrlen, const vector<Byte>& data)
     {
+        std::lock_guard lock(mutex_);
+
         auto& outbuf = io_buffer_.write_queue_;
         outbuf.push_back(make_tuple(toaddr, addrlen, data));
     }
 
     void Datagram::OnWrite(int sock_fd)
     {
+        std::lock_guard lock(mutex_);
+
         auto& outbuf = io_buffer_.write_queue_;
 
         while(!outbuf.empty())
@@ -54,6 +58,8 @@ namespace loquat
 
     void Datagram::OnRead(int sock_fd)
     {
+        std::lock_guard lock(mutex_);
+
         struct sockaddr src_addr;
         socklen_t addrlen;
 

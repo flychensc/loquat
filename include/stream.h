@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <vector>
 
 #include "pollable.h"
@@ -18,5 +19,6 @@ namespace loquat
             void OnRead(int sock_fd) override;
         private:
             IOBuffer io_buffer_;
+            std::recursive_mutex mutex_;
     };
 }

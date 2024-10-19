@@ -162,6 +162,7 @@ namespace
 
         fut.wait();
 
+        EXPECT_EQ(p_connector->Shouts.size(), p_connector->Echoes.size());
         EXPECT_EQ(p_connector->Shouts, p_connector->Echoes);
 
         loquat::Epoll::GetInstance().Leave(p_connector->Sock());
