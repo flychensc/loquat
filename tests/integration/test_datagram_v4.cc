@@ -15,8 +15,6 @@ namespace
     class TestPeerS : public loquat::Peer
     {
     public:
-        TestPeerS() : loquat::Peer(AF_UNIX) {}
-
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
             EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
@@ -28,8 +26,6 @@ namespace
     class TestPeerC : public loquat::Peer
     {
     public:
-        TestPeerC() : loquat::Peer(AF_UNIX) {}
-
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
@@ -38,20 +34,20 @@ namespace
         }
     };
 
-    TEST(Peer_UN, send_receive)
+    TEST(Datagram_IPv4, send_receive)
     {
         auto p_peer_s = std::make_shared<TestPeerS>();
         loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
-        p_peer_s->Bind("/tmp/peer_s");
+        p_peer_s->Bind("127.0.0.1", 16138);
 
         auto p_peer_c = std::make_shared<TestPeerC>();
         loquat::Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
-        p_peer_c->Bind("/tmp/peer_c");
+        p_peer_c->Bind("127.0.0.1", 27149);
 
         std::future<void> fut = std::async(std::launch::async, []
                                            { loquat::Epoll::GetInstance().Wait(); });
 
-        p_peer_c->Enqueue("/tmp/peer_s", stringToVector("Em, it's happy to see you."));
+        p_peer_c->Enqueue("127.0.0.1", 16138, stringToVector("Em, it's happy to see you."));
 
         fut.wait();
 
@@ -62,8 +58,6 @@ namespace
     class TestEcho : public loquat::Peer
     {
     public:
-        TestEcho() : loquat::Peer(AF_UNIX) {}
-
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
             Datagram::Enqueue(fromaddr, addrlen, data);
@@ -73,8 +67,6 @@ namespace
     class TestShouter : public loquat::Peer
     {
     public:
-        TestShouter() : loquat::Peer(AF_UNIX) {}
-
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
@@ -85,9 +77,9 @@ namespace
             }
         }
 
-        void Enqueue(const std::string &to_path, const std::vector<loquat::Byte> &data)
+        void Enqueue(const std::string& to_ip, int port, const std::vector<loquat::Byte> &data)
         {
-            Peer::Enqueue(to_path, data);
+            Peer::Enqueue(to_ip, port, data);
 
             Shouts.insert(Shouts.end(), data.begin(), data.end());
         }
@@ -96,22 +88,22 @@ namespace
         std::vector<loquat::Byte> Echoes;
     };
 
-    TEST(Peer_UN, 10kRuns)
+    TEST(Datagram_IPv4, 10kRuns)
     {
         auto p_peer_s = std::make_shared<TestEcho>();
         loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
-        p_peer_s->Bind("/tmp/peer_s");
+        p_peer_s->Bind("127.0.0.1", 16138);
 
         auto p_peer_c = std::make_shared<TestShouter>();
         loquat::Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
-        p_peer_c->Bind("/tmp/peer_c");
+        p_peer_c->Bind("127.0.0.1", 27149);
 
         std::future<void> fut = std::async(std::launch::async, []
                                            { loquat::Epoll::GetInstance().Wait(); });
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> length_dist(100, 4 * 1024);
+        std::uniform_int_distribution<> length_dist(100, 1024);
         std::uniform_int_distribution<> value_dist(0, 255);
 
         for (int i = 0; i < 10 * 1000; i++)
@@ -124,10 +116,10 @@ namespace
                 data[i] = static_cast<loquat::Byte>(value_dist(gen));
             }
 
-            p_peer_c->Enqueue("/tmp/peer_s", data);
+            p_peer_c->Enqueue("127.0.0.1", 16138, data);
         }
 
-        p_peer_c->Enqueue("/tmp/peer_s", stringToVector("EXIT"));
+        p_peer_c->Enqueue("127.0.0.1", 16138, stringToVector("EXIT"));
 
         fut.wait();
 

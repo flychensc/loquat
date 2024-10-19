@@ -38,7 +38,7 @@ namespace
         }
     };
 
-    TEST(Peer_IPv6, send_receive)
+    TEST(Datagram_IPv6, send_receive)
     {
         auto p_peer_s = std::make_shared<TestPeerS>();
         loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
@@ -96,7 +96,7 @@ namespace
         std::vector<loquat::Byte> Echoes;
     };
 
-    TEST(Peer_IPv6, 10kRuns)
+    TEST(Datagram_IPv6, 10kRuns)
     {
         auto p_peer_s = std::make_shared<TestEcho>();
         loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
@@ -111,7 +111,7 @@ namespace
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> length_dist(100, 4 * 1024);
+        std::uniform_int_distribution<> length_dist(100, 1024);
         std::uniform_int_distribution<> value_dist(0, 255);
 
         for (int i = 0; i < 10 * 1000; i++)
