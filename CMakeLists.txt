@@ -16,9 +16,12 @@ if (TEST)
     add_subdirectory(tests)
 endif()
 
+find_package(spdlog REQUIRED)
+
 file(GLOB_RECURSE libs CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/*.cc)
 add_library(loquat STATIC ${libs})
 target_include_directories(loquat PUBLIC ${PROJECT_SOURCE_DIR}/include/)
+target_link_libraries(loquat PRIVATE spdlog::spdlog)
 
 if (SAMPLE)
     file(GLOB_RECURSE mains CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/examples/*.cc)

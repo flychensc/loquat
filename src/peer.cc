@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <spdlog/spdlog.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -24,11 +25,15 @@ namespace loquat
             errinfo << "socket:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+
+        spdlog::debug("Peer:{}", sock_fd_);
     }
 
     Peer::~Peer()
     {
         ::close(sock_fd_);
+
+        spdlog::debug("~Peer:{}", sock_fd_);
     }
 
     void Peer::Bind(const std::string &ipaddr, int port)

@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <spdlog/spdlog.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -25,11 +26,13 @@ namespace loquat
             errinfo << "socket:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+        spdlog::debug("Connector:{}", sock_fd_);
     }
 
     Connector::~Connector()
     {
         ::close(sock_fd_);
+        spdlog::debug("~Connector:{}", sock_fd_);
     }
 
     void Connector::Bind(const string &ipaddr, int port)

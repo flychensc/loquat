@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <spdlog/spdlog.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -29,11 +30,13 @@ namespace loquat
             errinfo << "epoll_create1:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+        spdlog::debug("Epoll:{}", epollfd_);
     }
 
     Epoll::~Epoll()
     {
         ::close(epollfd_);
+        spdlog::debug("~Epoll:{}", epollfd_);
     }
 
     void Epoll::Join(int sock_fd, shared_ptr<Pollable> poller_ptr)
@@ -67,6 +70,8 @@ namespace loquat
             errinfo << "epoll_ctl: EPOLL_CTL_ADD(Join):" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+
+        spdlog::debug("Epoll Join:{} with events:0x{:X}", sock_fd, static_cast<unsigned int>(ev.events));
     }
 
     void Epoll::Leave(int sock_fd)
@@ -81,6 +86,8 @@ namespace loquat
 
         /*2. erase*/
         fd_pollers_.erase(sock_fd);
+
+        spdlog::debug("Epoll Leave:{}", sock_fd);
     }
 
     void Epoll::Wait()

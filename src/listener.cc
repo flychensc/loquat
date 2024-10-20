@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <spdlog/spdlog.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -32,11 +33,15 @@ namespace loquat
 
         /*2.set non-block*/
         ::fcntl(sock_fd_, F_SETFL, ::fcntl(sock_fd_, F_GETFL) | O_NONBLOCK);
+
+        spdlog::debug("Connection:{}", sock_fd_);
     }
 
     Connection::~Connection()
     {
         ::close(sock_fd_);
+
+        spdlog::debug("~Connection:{}", sock_fd_);
     }
 
     Listener::Listener(int domain, int max_connections) : domain_(domain),
@@ -49,11 +54,15 @@ namespace loquat
             errinfo << "socket:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+
+        spdlog::debug("Listener:{}", listen_fd_);
     }
 
     Listener::~Listener()
     {
         ::close(listen_fd_);
+
+        spdlog::debug("~Listener:{}", listen_fd_);
     }
 
     void Listener::Listen(const string &ipaddr, int port)
