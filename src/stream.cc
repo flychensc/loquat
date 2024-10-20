@@ -11,11 +11,11 @@ namespace loquat
 {
     using namespace std;
 
-    void Stream::Enqueue(const vector<Byte>& data)
+    void Stream::Enqueue(const vector<Byte> &data)
     {
         std::lock_guard lock(mutex_);
 
-        auto& outbuf = io_buffer_.write_queue_;
+        auto &outbuf = io_buffer_.write_queue_;
         outbuf.push_back(data);
     }
 
@@ -23,14 +23,14 @@ namespace loquat
     {
         std::lock_guard lock(mutex_);
 
-        auto& outbuf = io_buffer_.write_queue_;
+        auto &outbuf = io_buffer_.write_queue_;
 
-        while(!outbuf.empty())
+        while (!outbuf.empty())
         {
             auto msg = outbuf.front();
 
-            auto buf = msg.data()+io_buffer_.write_queue_head_offset_;
-            auto len = msg.size()-io_buffer_.write_queue_head_offset_;
+            auto buf = msg.data() + io_buffer_.write_queue_head_offset_;
+            auto len = msg.size() - io_buffer_.write_queue_head_offset_;
 
             auto written = ::send(sock_fd, buf, len, 0);
 
@@ -64,7 +64,7 @@ namespace loquat
 
     void Stream::OnRead(int sock_fd)
     {
-        auto& inbuf = io_buffer_.read_buffer_;
+        auto &inbuf = io_buffer_.read_buffer_;
 
         auto buf = inbuf.data();
         auto len = inbuf.size();
@@ -91,7 +91,7 @@ namespace loquat
         io_buffer_.read_bytes_ = bytes_in;
 
         vector<Byte> recv_data;
-        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin()+io_buffer_.read_bytes_);
+        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
 
         io_buffer_.read_bytes_ = 0;
 

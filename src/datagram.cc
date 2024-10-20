@@ -12,11 +12,11 @@ namespace loquat
 {
     using namespace std;
 
-    void Datagram::Enqueue(struct sockaddr& toaddr, socklen_t addrlen, const vector<Byte>& data)
+    void Datagram::Enqueue(struct sockaddr &toaddr, socklen_t addrlen, const vector<Byte> &data)
     {
         std::lock_guard lock(mutex_);
 
-        auto& outbuf = io_buffer_.write_queue_;
+        auto &outbuf = io_buffer_.write_queue_;
         outbuf.push_back(make_tuple(toaddr, addrlen, data));
     }
 
@@ -24,14 +24,14 @@ namespace loquat
     {
         std::lock_guard lock(mutex_);
 
-        auto& outbuf = io_buffer_.write_queue_;
+        auto &outbuf = io_buffer_.write_queue_;
 
-        while(!outbuf.empty())
+        while (!outbuf.empty())
         {
             auto entry = outbuf.front();
-            auto& dest_addr = get<0>(entry);
-            auto& addrlen = get<1>(entry);
-            auto& msg = get<2>(entry);
+            auto &dest_addr = get<0>(entry);
+            auto &addrlen = get<1>(entry);
+            auto &msg = get<2>(entry);
 
             auto written = ::sendto(sock_fd, msg.data(), msg.size(), 0, &dest_addr, addrlen);
 
@@ -61,7 +61,7 @@ namespace loquat
         struct sockaddr src_addr;
         socklen_t addrlen;
 
-        auto& inbuf = io_buffer_.read_buffer_;
+        auto &inbuf = io_buffer_.read_buffer_;
 
         auto bytes_in = ::recvfrom(sock_fd, inbuf.data(), inbuf.size(), 0, &src_addr, &addrlen);
         if (bytes_in < 0)
@@ -79,7 +79,7 @@ namespace loquat
         io_buffer_.read_bytes_ = bytes_in;
 
         vector<Byte> recv_data;
-        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin()+io_buffer_.read_bytes_);
+        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
 
         io_buffer_.read_bytes_ = 0;
 

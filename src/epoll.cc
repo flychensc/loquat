@@ -14,14 +14,13 @@ namespace loquat
 {
     using namespace std;
 
-    Epoll& Epoll::GetInstance()
+    Epoll &Epoll::GetInstance()
     {
         static Epoll single;
         return single;
     }
 
-    Epoll::Epoll(int maxevents) :
-        maxevents_(maxevents)
+    Epoll::Epoll(int maxevents) : maxevents_(maxevents)
     {
         epollfd_ = ::epoll_create1(0);
         if (epollfd_ == -1)
@@ -90,11 +89,11 @@ namespace loquat
         struct epoll_event events[maxevents_];
 
         loop_flag_ = true;
-        while(loop_flag_)
+        while (loop_flag_)
         {
             nfds = ::epoll_wait(epollfd_, events, maxevents_, -1);
 
-            for(i = 0; i < nfds; ++i)
+            for (i = 0; i < nfds; ++i)
             {
                 auto poller_ptr = fd_pollers_.at(events[i].data.fd);
                 auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);

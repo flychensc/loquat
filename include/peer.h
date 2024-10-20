@@ -9,23 +9,45 @@ namespace loquat
 {
     class Peer : public Datagram
     {
-        public:
-            Peer(int domain);
-            Peer() : Peer(AF_INET) {};
-            ~Peer();
+    public:
+        Peer(int domain);
+        Peer() : Peer(AF_INET) {};
+        ~Peer();
 
-            Peer( const Peer& ) = delete;
-            Peer( Peer&& ) = delete;
+        Peer(const Peer &) = delete;
+        Peer(Peer &&) = delete;
 
-            int Sock() { return sock_fd_; };
+        /** @brief get sock id
+         * @return sock id
+         */
+        int Sock() { return sock_fd_; };
 
-            void Bind(const std::string& ipaddr, int port);
-            void Bind(const std::string& unix_path);
+        /** @brief binding a ipv4/ipv6 address+port
+         * @param ipaddr ip address
+         * @param port port number
+         */
+        void Bind(const std::string &ipaddr, int port);
 
-            void Enqueue(const std::string& to_ip, int port, const std::vector<Byte>& data);
-            void Enqueue(const std::string& to_path, const std::vector<Byte>& data);
-        private:
-            int domain_;
-            int sock_fd_;
+        /** @brief binding a unix path
+         * @param unix_path unix path
+         */
+        void Bind(const std::string &unix_path);
+
+        /** @brief enqueue output data
+         * @param ipaddr destination ip
+         * @param port destination port
+         * @param data output data
+         */
+        void Enqueue(const std::string &to_ip, int port, const std::vector<Byte> &data);
+
+        /** @brief enqueue output data
+         * @param to_path unix path
+         * @param data output data
+         */
+        void Enqueue(const std::string &to_path, const std::vector<Byte> &data);
+
+    private:
+        int domain_;
+        int sock_fd_;
     };
 }

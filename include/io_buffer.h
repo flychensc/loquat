@@ -13,13 +13,13 @@ namespace loquat
 
     struct IOBuffer
     {
-        static constexpr int kReadBufferSize = 2*1024;
+        static constexpr int kReadBufferSize = 2 * 1024;
 
         IOBuffer() : read_bytes_(0),
-            write_queue_head_offset_(0)
-            {
-                read_buffer_.resize(kReadBufferSize);
-            };
+                     write_queue_head_offset_(0)
+        {
+            read_buffer_.resize(kReadBufferSize);
+        };
 
         /* Read buffer */
         std::vector<Byte> read_buffer_;
@@ -36,12 +36,12 @@ namespace loquat
 
     struct IOBuffer2
     {
-        static constexpr int kReadBufferSize = 2*1024;
+        static constexpr int kReadBufferSize = 2 * 1024;
 
         IOBuffer2() : read_bytes_(0)
-            {
-                read_buffer_.resize(kReadBufferSize);
-            };
+        {
+            read_buffer_.resize(kReadBufferSize);
+        };
 
         /* Read buffer */
         std::vector<Byte> read_buffer_;
