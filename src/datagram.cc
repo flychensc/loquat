@@ -58,8 +58,6 @@ namespace loquat
 
     void Datagram::OnRead(int sock_fd)
     {
-        std::lock_guard lock(mutex_);
-
         struct sockaddr src_addr;
         socklen_t addrlen;
 

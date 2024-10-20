@@ -64,8 +64,6 @@ namespace loquat
 
     void Stream::OnRead(int sock_fd)
     {
-        std::lock_guard lock(mutex_);
-
         auto& inbuf = io_buffer_.read_buffer_;
 
         auto buf = inbuf.data();

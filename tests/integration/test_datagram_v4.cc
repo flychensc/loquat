@@ -1,6 +1,4 @@
-#include <condition_variable>
 #include <future>
-#include <mutex>
 #include <random>
 
 #include "peer.h"
@@ -71,36 +69,23 @@ namespace
     public:
         void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override
         {
+            Echoes.insert(Echoes.end(), data.begin(), data.end());
+
+            if (data.size() == 4)
             {
-                std::unique_lock lock(mutex_);
-                Echoes.insert(Echoes.end(), data.begin(), data.end());
-
-                if (data.size() == 4)
-                {
-                    loquat::Epoll::GetInstance().Terminate();
-                }
+                loquat::Epoll::GetInstance().Terminate();
             }
-
-            cv_.notify_all();
         }
 
         void Enqueue(const std::string &to_ip, int port, const std::vector<loquat::Byte> &data)
         {
-            std::unique_lock lock(mutex_);
-
             Peer::Enqueue(to_ip, port, data);
 
             Shouts.insert(Shouts.end(), data.begin(), data.end());
-
-            cv_.wait(lock);
         }
 
         std::vector<loquat::Byte> Shouts;
         std::vector<loquat::Byte> Echoes;
-
-    private:
-        std::condition_variable cv_;
-        std::mutex mutex_;
     };
 
     TEST(Datagram_IPv4, 10kRuns)

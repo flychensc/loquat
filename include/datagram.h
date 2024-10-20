@@ -19,6 +19,6 @@ namespace loquat
             void OnWrite(int sock_fd) override;
         private:
             IOBuffer2 io_buffer_;
-            std::recursive_mutex mutex_;
+            std::mutex mutex_;
     };
 }

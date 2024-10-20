@@ -43,12 +43,19 @@ namespace
         static const int kMaxConnections = 20;
 
         TestListener() : Listener(kMaxConnections) {};
+        ~TestListener()
+        {
+            loquat::Epoll::GetInstance().Leave(connection_ptr->Sock());
+        }
 
         void OnAccept(int listen_sock) override
         {
-            auto connection_ptr = std::make_shared<TestConnection>(listen_sock);
+            connection_ptr = std::make_shared<TestConnection>(listen_sock);
             loquat::Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
         }
+
+    private:
+        std::shared_ptr<TestConnection> connection_ptr;
     };
 
     TEST(Stream_IPv4, send_receive)
@@ -118,12 +125,19 @@ namespace
         static const int kMaxConnections = 20;
 
         TestEchoListener() : Listener(kMaxConnections) {};
+        ~TestEchoListener()
+        {
+            loquat::Epoll::GetInstance().Leave(connection_ptr->Sock());
+        }
 
         void OnAccept(int listen_sock) override
         {
-            auto connection_ptr = std::make_shared<TestEcho>(listen_sock);
+            connection_ptr = std::make_shared<TestEcho>(listen_sock);
             loquat::Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
         }
+
+    private:
+        std::shared_ptr<TestEcho> connection_ptr;
     };
 
     TEST(Stream_IPv4, 10kRuns)
