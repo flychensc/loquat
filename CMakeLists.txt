@@ -4,7 +4,7 @@ project(loquat)
 
 option(SAMPLE "Enable the sample feature for demonstration purposes." ON)
 option(DEBUG "Enable debug mode for detailed logging and error checking." OFF)
-option(TEST "Enable building and running unit tests using Google Test." OFF)
+option(TEST "Enable building and running unit tests using Google Test." ON)
 
 if (DEBUG)
     set(CMAKE_BUILD_TYPE Debug)
