@@ -21,7 +21,7 @@ namespace loquat
         return single;
     }
 
-    Epoll::Epoll(int maxevents) : maxevents_(maxevents)
+    Epoll::Epoll(int maxevents) : maxevents_(maxevents), loop_flag_(false)
     {
         epollfd_ = ::epoll_create1(0);
         if (epollfd_ == -1)
@@ -96,7 +96,7 @@ namespace loquat
         struct epoll_event events[maxevents_];
 
         loop_flag_ = true;
-        while (loop_flag_)
+        while (loop_flag_.load(std::memory_order_acquire))
         {
             nfds = ::epoll_wait(epollfd_, events, maxevents_, -1);
 
@@ -131,7 +131,7 @@ namespace loquat
 
     void Epoll::Terminate()
     {
-        loop_flag_ = false;
+        loop_flag_.store(false, std::memory_order_acquire);
     }
 
     void Epoll::onSocketAccept(int listen_sock)
