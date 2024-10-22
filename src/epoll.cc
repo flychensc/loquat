@@ -160,6 +160,9 @@ namespace loquat
         auto poller_ptr = fd_pollers_.at(sock_fd);
         /*3. erase*/
         fd_pollers_.erase(sock_fd);
+
+        spdlog::debug("Epoll onSocketClose:{}", sock_fd);
+
         auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
         if (closalbe_ptr)
         {
