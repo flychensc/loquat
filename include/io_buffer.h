@@ -26,7 +26,7 @@ namespace loquat
         /* Number of bytes currently in read buffer */
         std::size_t read_bytes_;
         /* Num bytes needed for next process step */
-        // std::size_t bytes_needed_;
+        std::size_t bytes_needed_;
 
         /* Write queue */
         std::list<std::vector<Byte>> write_queue_;
