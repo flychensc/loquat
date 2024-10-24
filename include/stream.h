@@ -11,6 +11,11 @@ namespace loquat
     class Stream : public ReadWritable, public Closable
     {
     public:
+        enum class StreamType {
+            Unframed,    // 不需要长度
+            Framed       // 需要长度
+        };
+
         /** @brief enqueue output data
          * @param data output data
          */
