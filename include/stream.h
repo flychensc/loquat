@@ -15,7 +15,13 @@ namespace loquat
          * @param data output data
          */
         void Enqueue(const std::vector<Byte> &data);
-        virtual void OnRecv(std::vector<Byte> &data) = 0;
+
+    protected:
+        virtual void OnRecv(const std::vector<Byte> &data) = 0;
+        /** @brief Read from sock, up to bytes_needed bytes
+         * @param bytes_needed update bytes needed
+         */
+        void SetBytesNeeded(std::size_t bytes_needed);
 
         void OnClose(int sock_fd) override {};
         void OnWrite(int sock_fd) override;

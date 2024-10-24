@@ -6,7 +6,7 @@ namespace
     class TestPeer : public loquat::Peer
     {
     public:
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, std::vector<loquat::Byte> &data) override {}
+        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, const std::vector<loquat::Byte> &data) override {}
     };
 
     TEST(Peer, destructor)

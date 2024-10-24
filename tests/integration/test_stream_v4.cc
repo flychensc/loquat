@@ -16,7 +16,7 @@ namespace
     class TestConnector : public loquat::Connector
     {
     public:
-        void OnRecv(std::vector<loquat::Byte> &data) override
+        void OnRecv(const std::vector<loquat::Byte> &data) override
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
@@ -29,7 +29,7 @@ namespace
     public:
         TestConnection(int listen_fd) : Connection(listen_fd) {}
 
-        void OnRecv(std::vector<loquat::Byte> &data) override
+        void OnRecv(const std::vector<loquat::Byte> &data) override
         {
             EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
 
@@ -83,7 +83,7 @@ namespace
     class TestShouter : public loquat::Connector
     {
     public:
-        void OnRecv(std::vector<loquat::Byte> &data) override
+        void OnRecv(const std::vector<loquat::Byte> &data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
@@ -113,7 +113,7 @@ namespace
     public:
         TestEcho(int listen_fd) : Connection(listen_fd) {}
 
-        void OnRecv(std::vector<loquat::Byte> &data) override
+        void OnRecv(const std::vector<loquat::Byte> &data) override
         {
             Connection::Enqueue(data);
         }

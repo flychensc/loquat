@@ -16,6 +16,7 @@ namespace loquat
         static constexpr int kReadBufferSize = 2 * 1024;
 
         IOBuffer() : read_bytes_(0),
+                     bytes_needed_(0),
                      write_queue_head_offset_(0)
         {
             read_buffer_.resize(kReadBufferSize);

@@ -13,15 +13,29 @@ namespace loquat
 
     void Stream::Enqueue(const vector<Byte> &data)
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
 
         auto &outbuf = io_buffer_.write_queue_;
         outbuf.push_back(data);
     }
 
+    void Stream::SetBytesNeeded(std::size_t bytes_needed)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        io_buffer_.bytes_needed_ = bytes_needed;
+
+        // Resize if needed
+        auto &inbuf = io_buffer_.read_buffer_;
+        if (bytes_needed > inbuf.size())
+        {
+            inbuf.resize(bytes_needed);
+        }
+    }
+
     void Stream::OnWrite(int sock_fd)
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
 
         auto &outbuf = io_buffer_.write_queue_;
 
@@ -64,38 +78,49 @@ namespace loquat
 
     void Stream::OnRead(int sock_fd)
     {
-        auto &inbuf = io_buffer_.read_buffer_;
+        vector<Byte> recv_data;
 
-        auto buf = inbuf.data();
-        auto len = inbuf.size();
-
-        auto bytes_in = ::recv(sock_fd, buf, len, 0);
-        if (bytes_in <= 0)
         {
-            if (bytes_in == 0)
+            std::lock_guard<std::mutex> lock(mutex_);
+
+            auto &inbuf = io_buffer_.read_buffer_;
+
+            auto inbuf_start = inbuf.data() + io_buffer_.read_bytes_;
+
+            auto bytes_in = ::recv(sock_fd, inbuf_start, io_buffer_.bytes_needed_, 0);
+            if (bytes_in <= 0)
             {
-                /* Socket is closed */
-                return;
+                if (bytes_in == 0)
+                {
+                    /* Socket is closed */
+                    return;
+                }
+
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    return;
+                }
+
+                stringstream errinfo;
+                errinfo << "recv:" << strerror(errno);
+                throw runtime_error(errinfo.str());
             }
 
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                return;
-            }
+            io_buffer_.read_bytes_ += bytes_in;
 
-            stringstream errinfo;
-            errinfo << "recv:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            if (io_buffer_.bytes_needed_ == io_buffer_.read_bytes_)
+            {
+                recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
+
+                io_buffer_.read_bytes_ = 0;
+                io_buffer_.bytes_needed_ = 0;
+            }
         }
 
-        io_buffer_.read_bytes_ = bytes_in;
-
-        vector<Byte> recv_data;
-        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
-
-        io_buffer_.read_bytes_ = 0;
-
-        // invoke callback
-        OnRecv(recv_data);
+        if (recv_data.size() > 0)
+        {
+            // invoke callback
+            OnRecv(recv_data);
+        }
     }
 }

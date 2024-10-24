@@ -1,8 +1,9 @@
 #pragma once
 
 #include <atomic>
-#include <map>
 #include <memory>
+#include <mutex>
+#include <unordered_map>
 
 #include "pollable.h"
 
@@ -54,6 +55,7 @@ namespace loquat
         // handle tcp socket writeable event(write())
         void onSocketWrite(int sock_fd);
 
-        std::map<int, std::shared_ptr<Pollable>> fd_pollers_;
+        std::unordered_map<int, std::shared_ptr<Pollable>> fd_pollers_;
+        std::mutex mutex_;
     };
 }

@@ -41,6 +41,8 @@ namespace loquat
 
     void Epoll::Join(int sock_fd, shared_ptr<Pollable> poller_ptr)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
+
         struct epoll_event ev = {0};
 
         /*1. insert*/
@@ -76,6 +78,8 @@ namespace loquat
 
     void Epoll::Leave(int sock_fd)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
+
         /*1.delete from epoll*/
         if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
         {
@@ -102,6 +106,8 @@ namespace loquat
 
             for (i = 0; i < nfds; ++i)
             {
+                std::lock_guard<std::mutex> lock(mutex_);
+
                 auto poller_ptr = fd_pollers_.at(events[i].data.fd);
                 auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
                 if (acceptable_ptr)

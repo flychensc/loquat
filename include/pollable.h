@@ -10,11 +10,12 @@ namespace loquat
 
     class Acceptable : virtual public Pollable
     {
-    public:
+    protected:
         /** @brief register a callback to handle new connection
          * @param listen_sock listening sock id
          */
         virtual void OnAccept(int listen_sock) = 0;
+        friend class Epoll;
     };
 
     class ReadWritable : virtual public Pollable
@@ -33,7 +34,7 @@ namespace loquat
 
     class Closable : virtual public Pollable
     {
-    public:
+    protected:
         /** @brief register a callback to handle connection disconnected
          * @param sock_fd sock id
          */

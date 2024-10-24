@@ -9,29 +9,30 @@ using namespace loquat;
 
 class EchoConnector : public Connector
 {
-    public:
-        void OnRecv(std::vector<Byte>& data) override
-        {
-            std::string str(data.begin(),data.end());
-            std::cout << "Receive " << data.size() << " bytes: ";
-            std::cout << str << std::endl;
+public:
+    void OnRecv(const std::vector<Byte> &data) override
+    {
+        std::string str(data.begin(), data.end());
+        std::cout << "Receive " << data.size() << " bytes: ";
+        std::cout << str << std::endl;
 
-            Epoll::GetInstance().Terminate();
-        }
+        Epoll::GetInstance().Terminate();
+    }
 };
 
-int main( int argc,      // Number of strings in array argv
-          char *argv[],   // Array of command-line argument strings
-          char *envp[] )  // Array of environment variable strings
+int main(int argc,     // Number of strings in array argv
+         char *argv[], // Array of command-line argument strings
+         char *envp[]) // Array of environment variable strings
 {
     auto p_connector = std::make_shared<EchoConnector>();
 
     Epoll::GetInstance().Join(p_connector->Sock(), p_connector);
 
     auto msg = std::string("Hello World");
-    std::vector<Byte> data(msg.data(), msg.data()+msg.size());
+    std::vector<Byte> data(msg.data(), msg.data() + msg.size());
     std::cout << "Send " << data.size() << " bytes: ";
-    std::cout << data.data() << std::endl << std::endl;
+    std::cout << data.data() << std::endl
+              << std::endl;
     p_connector->Enqueue(data);
 
     p_connector->Bind("127.0.0.1", 30018);
