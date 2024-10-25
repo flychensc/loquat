@@ -12,7 +12,8 @@ namespace loquat
     class Connection : public Stream
     {
     public:
-        Connection(int listen_fd);
+        Connection(Stream::Type type, int listen_fd);
+        Connection(int listen_fd) : Connection(Stream::Type::Unframed, listen_fd) {}
         ~Connection();
 
         Connection(const Connection &) = delete;

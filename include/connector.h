@@ -11,8 +11,9 @@ namespace loquat
     class Connector : public Stream
     {
     public:
-        Connector(int domain);
-        Connector() : Connector(AF_INET) {};
+        Connector(Stream::Type type, int domain);
+        Connector() : Connector(Stream::Type::Unframed, AF_INET) {}
+        Connector(int domain) : Connector(Stream::Type::Unframed, domain) {}
         ~Connector();
 
         Connector(const Connector &) = delete;

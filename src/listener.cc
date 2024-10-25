@@ -17,7 +17,7 @@ namespace loquat
 {
     using namespace std;
 
-    Connection::Connection(int listen_fd)
+    Connection::Connection(Stream::Type type, int listen_fd) : Stream(type)
     {
         struct sockaddr_in addr = {0};
         socklen_t addrlen = sizeof(struct sockaddr_in);

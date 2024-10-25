@@ -11,10 +11,14 @@ namespace loquat
     class Stream : public ReadWritable, public Closable
     {
     public:
-        enum class StreamType {
-            Unframed,    // 不需要长度
-            Framed       // 需要长度
+        enum class Type
+        {
+            Unframed,
+            Framed,
         };
+
+        Stream() : Stream(Type::Unframed) {}
+        Stream(Type type) : type_(type) {}
 
         /** @brief enqueue output data
          * @param data output data
@@ -36,6 +40,7 @@ namespace loquat
         void recvUnframed(int sock_fd);
         void recvFramed(int sock_fd);
 
+        Type type_;
         IOBuffer io_buffer_;
         std::mutex mutex_;
     };

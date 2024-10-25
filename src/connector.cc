@@ -16,8 +16,9 @@ namespace loquat
 {
     using namespace std;
 
-    Connector::Connector(int domain) : domain_(domain),
-                                       connect_flag_(false)
+    Connector::Connector(Stream::Type type, int domain) : Stream(type),
+                                                          domain_(domain),
+                                                          connect_flag_(false)
     {
         sock_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (sock_fd_ == -1)

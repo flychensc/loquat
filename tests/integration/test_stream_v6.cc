@@ -160,7 +160,7 @@ namespace
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> length_dist(100, 1024);
+        std::uniform_int_distribution<> length_dist(100, 4 * 1024);
         std::uniform_int_distribution<> value_dist(0, 255);
 
         for (int c = 0; c < 10 * 1000; c++)

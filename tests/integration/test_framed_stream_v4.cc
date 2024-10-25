@@ -16,25 +16,50 @@ namespace
     class TestConnector : public loquat::Connector
     {
     public:
+        TestConnector() : Connector(Stream::Type::Framed, AF_INET)
+        {
+            current_bytes_need_ = 4;
+            SetBytesNeeded(current_bytes_need_);
+        }
+
         void OnRecv(const std::vector<loquat::Byte> &data) override
         {
-            EXPECT_EQ(data, stringToVector("Good to see you too."));
+            EXPECT_EQ(data.size(), current_bytes_need_);
 
+            current_bytes_need_ = 1024;
+            SetBytesNeeded(current_bytes_need_);
+
+            if (data.size() == 1024)
+            {
             loquat::Epoll::GetInstance().Terminate();
         }
+        }
+
+    private:
+        int current_bytes_need_;
     };
 
     class TestConnection : public loquat::Connection
     {
     public:
-        TestConnection(int listen_fd) : Connection(listen_fd) {}
+        TestConnection(int listen_fd) : Connection(Stream::Type::Framed, listen_fd)
+        {
+            current_bytes_need_ = 4;
+            SetBytesNeeded(current_bytes_need_);
+        }
 
         void OnRecv(const std::vector<loquat::Byte> &data) override
         {
-            EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
+            EXPECT_EQ(data.size(), current_bytes_need_);
 
-            Connection::Enqueue(stringToVector("Good to see you too."));
+            current_bytes_need_ = 1024;
+            SetBytesNeeded(current_bytes_need_);
+
+            Connection::Enqueue(data);
         }
+
+    private:
+        int current_bytes_need_;
     };
 
     class TestListener : public loquat::Listener
@@ -58,7 +83,7 @@ namespace
         std::shared_ptr<TestConnection> connection_ptr;
     };
 
-    TEST(Stream_IPv4, send_receive)
+    TEST(FramedStream_IPv4, send_receive)
     {
         auto p_listener = std::make_shared<TestListener>();
         loquat::Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
@@ -72,7 +97,9 @@ namespace
         std::future<void> fut = std::async(std::launch::async, []
                                            { loquat::Epoll::GetInstance().Wait(); });
 
-        p_connector->Enqueue(stringToVector("Em, it's happy to see you."));
+        p_connector->Enqueue(std::vector<loquat::Byte>(4));
+
+        p_connector->Enqueue(std::vector<loquat::Byte>(1024));
 
         fut.wait();
 
@@ -83,17 +110,21 @@ namespace
     class TestShouter : public loquat::Connector
     {
     public:
+        TestShouter() : Connector(Stream::Type::Framed, AF_INET)
+        {
+            SetBytesNeeded(4);
+        }
+
         void OnRecv(const std::vector<loquat::Byte> &data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
-            if (Echoes.size() >= 4)
-            {
-                std::string flag(reinterpret_cast<char *>(Echoes.data()) + (Echoes.size() - 4), 4);
+            EXPECT_EQ(data.size(), 4);
+
+            std::string flag(data.begin(), data.end());
                 if (flag == "EXIT")
                 {
                     loquat::Epoll::GetInstance().Terminate();
-                }
             }
         }
 
@@ -111,10 +142,14 @@ namespace
     class TestEcho : public loquat::Connection
     {
     public:
-        TestEcho(int listen_fd) : Connection(listen_fd) {}
+        TestEcho(int listen_fd) : Connection(Stream::Type::Framed, listen_fd)
+        {
+            SetBytesNeeded(4);
+        }
 
         void OnRecv(const std::vector<loquat::Byte> &data) override
         {
+            EXPECT_EQ(data.size(), 4);
             Connection::Enqueue(data);
         }
     };
@@ -140,7 +175,7 @@ namespace
         std::shared_ptr<TestEcho> connection_ptr;
     };
 
-    TEST(Stream_IPv4, 10kRuns)
+    TEST(FramedStream_IPv4, 10kRuns)
     {
         auto p_listener = std::make_shared<TestEchoListener>();
         loquat::Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
@@ -156,12 +191,11 @@ namespace
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> length_dist(100, 4 * 1024);
         std::uniform_int_distribution<> value_dist(0, 255);
 
         for (int c = 0; c < 10 * 1000; c++)
         {
-            int length = length_dist(gen);
+            int length = 20;
             std::vector<loquat::Byte> data(length);
 
             for (int i = 0; i < length; ++i)

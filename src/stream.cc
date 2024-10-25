@@ -78,6 +78,14 @@ namespace loquat
 
     void Stream::OnRead(int sock_fd)
     {
+        if (type_ == Type::Unframed)
+        {
+            recvUnframed(sock_fd);
+        }
+        else
+        {
+            recvFramed(sock_fd);
+        }
     }
 
     void Stream::recvUnframed(int sock_fd)
@@ -154,7 +162,6 @@ namespace loquat
                 recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
 
                 io_buffer_.read_bytes_ = 0;
-                io_buffer_.bytes_needed_ = 0;
             }
         }
 
