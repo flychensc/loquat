@@ -56,6 +56,6 @@ namespace loquat
         void onSocketWrite(int sock_fd);
 
         std::unordered_map<int, std::shared_ptr<Pollable>> fd_pollers_;
-        std::mutex mutex_;
+        std::recursive_mutex mutex_;
     };
 }

@@ -78,6 +78,47 @@ namespace loquat
 
     void Stream::OnRead(int sock_fd)
     {
+    }
+
+    void Stream::recvUnframed(int sock_fd)
+    {
+        auto &inbuf = io_buffer_.read_buffer_;
+
+        auto buf = inbuf.data() + io_buffer_.read_bytes_;
+        auto len = inbuf.size();
+
+        auto bytes_in = ::recv(sock_fd, buf, len, 0);
+        if (bytes_in <= 0)
+        {
+            if (bytes_in == 0)
+            {
+                /* Socket is closed */
+                return;
+            }
+
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                return;
+            }
+
+            stringstream errinfo;
+            errinfo << "recv:" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
+        io_buffer_.read_bytes_ = bytes_in;
+
+        vector<Byte> recv_data;
+        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
+
+        io_buffer_.read_bytes_ = 0;
+
+        // invoke callback
+        OnRecv(recv_data);
+    }
+
+    void Stream::recvFramed(int sock_fd)
+    {
         vector<Byte> recv_data;
 
         {

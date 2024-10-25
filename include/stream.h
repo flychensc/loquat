@@ -33,6 +33,9 @@ namespace loquat
         void OnRead(int sock_fd) override;
 
     private:
+        void recvUnframed(int sock_fd);
+        void recvFramed(int sock_fd);
+
         IOBuffer io_buffer_;
         std::mutex mutex_;
     };
