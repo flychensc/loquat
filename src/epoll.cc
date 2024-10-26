@@ -116,6 +116,27 @@ namespace loquat
                 }
                 else
                 {
+                    if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
+                    {
+                        // confirm socket state
+                        int optval;
+                        socklen_t optlen = sizeof(optval);
+
+                        if (::getsockopt(events[i].data.fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
+                        {
+                            stringstream errinfo;
+                            errinfo << "getsockopt:" << strerror(errno);
+                            throw runtime_error(errinfo.str());
+                        }
+
+                        if (optval != 0)
+                        {
+                            onSocketClose(events[i].data.fd);
+                            // ignore EPOLLOUT
+                            continue;
+                        }
+                    }
+
                     if (events[i].events & EPOLLIN)
                     {
                         onSocketRead(events[i].data.fd);
@@ -124,11 +145,6 @@ namespace loquat
                     if (events[i].events & EPOLLOUT)
                     {
                         onSocketWrite(events[i].data.fd);
-                    }
-
-                    if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
-                    {
-                        onSocketClose(events[i].data.fd);
                     }
                 }
             }
