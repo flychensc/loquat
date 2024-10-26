@@ -5,11 +5,31 @@
 #include <tuple>
 #include <vector>
 
+#include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 
 namespace loquat
 {
     using Byte = uint8_t;
+
+    struct SockAddr
+    {
+        union
+        {
+            struct sockaddr sa;
+            struct sockaddr_in v4;
+            struct sockaddr_in6 v6;
+            struct sockaddr_un un;
+        } addr;
+
+        socklen_t addrlen;
+
+        SockAddr() : addrlen(0)
+        {
+            memset(this, 0, sizeof(*this));
+        }
+    };
 
     struct IOBuffer
     {
@@ -50,6 +70,6 @@ namespace loquat
         std::size_t read_bytes_;
 
         /* Write queue */
-        std::list<std::tuple<struct sockaddr, socklen_t, std::vector<Byte>>> write_queue_;
+        std::list<std::tuple<SockAddr, std::vector<Byte>>> write_queue_;
     };
 }

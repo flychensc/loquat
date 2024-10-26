@@ -12,10 +12,10 @@ namespace loquat
     class Datagram : public ReadWritable
     {
     public:
-        void Enqueue(struct sockaddr &toaddr, socklen_t addrlen, const std::vector<Byte> &data);
+        void Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data);
 
     protected:
-        virtual void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, const std::vector<Byte> &data) = 0;
+        virtual void OnRecv(const SockAddr &fromaddr, const std::vector<Byte> &data) = 0;
 
         void OnRead(int sock_fd) override;
         void OnWrite(int sock_fd) override;

@@ -17,11 +17,11 @@ namespace
     public:
         TestPeerS() : loquat::Peer(AF_UNIX) {}
 
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
         {
             EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
 
-            Datagram::Enqueue(fromaddr, addrlen, stringToVector("Good to see you too."));
+            Datagram::Enqueue(fromaddr, stringToVector("Good to see you too."));
         }
     };
 
@@ -30,7 +30,7 @@ namespace
     public:
         TestPeerC() : loquat::Peer(AF_UNIX) {}
 
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
@@ -64,9 +64,9 @@ namespace
     public:
         TestEcho() : loquat::Peer(AF_UNIX) {}
 
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
         {
-            Datagram::Enqueue(fromaddr, addrlen, data);
+            Datagram::Enqueue(fromaddr, data);
         }
     };
 
@@ -75,7 +75,7 @@ namespace
     public:
         TestShouter() : loquat::Peer(AF_UNIX) {}
 
-        void OnRecv(struct sockaddr &fromaddr, socklen_t addrlen, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 

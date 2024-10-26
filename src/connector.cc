@@ -42,18 +42,20 @@ namespace loquat
         socklen_t optlen = sizeof(optval);
         ::setsockopt(sock_fd_, SOL_SOCKET, SO_REUSEADDR, &optval, optlen);
 
-        struct sockaddr toaddr;
+        struct sockaddr_in addr4;
+        struct sockaddr_in6 addr6;
+        struct sockaddr *toaddr;
         socklen_t addrlen;
 
         if (AF_INET == domain_)
         {
-            struct sockaddr_in *addr = (struct sockaddr_in *)&toaddr;
+            toaddr = (struct sockaddr *)&addr4;
             addrlen = sizeof(struct sockaddr_in);
 
-            addr->sin_family = domain_;
-            addr->sin_port = ::htons(port);
+            addr4.sin_family = domain_;
+            addr4.sin_port = ::htons(port);
 
-            if (::inet_pton(domain_, ipaddr.c_str(), &addr->sin_addr) != 1)
+            if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
                 stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
@@ -62,13 +64,13 @@ namespace loquat
         }
         else if (AF_INET6 == domain_)
         {
-            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&toaddr;
+            toaddr = (struct sockaddr *)&addr6;
             addrlen = sizeof(struct sockaddr_in6);
 
-            addr->sin6_family = domain_;
-            addr->sin6_port = ::htons(port);
+            addr6.sin6_family = domain_;
+            addr6.sin6_port = ::htons(port);
 
-            if (::inet_pton(domain_, ipaddr.c_str(), &addr->sin6_addr) != 1)
+            if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
                 stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
@@ -76,7 +78,7 @@ namespace loquat
             }
         }
 
-        if (::bind(sock_fd_, &toaddr, addrlen) == -1)
+        if (::bind(sock_fd_, toaddr, addrlen) == -1)
         {
             stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
@@ -107,18 +109,20 @@ namespace loquat
 
     void Connector::Connect(const string &ipaddr, int port)
     {
-        struct sockaddr toaddr;
+        struct sockaddr_in addr4;
+        struct sockaddr_in6 addr6;
+        struct sockaddr *toaddr;
         socklen_t addrlen;
 
         if (AF_INET == domain_)
         {
-            struct sockaddr_in *addr = (struct sockaddr_in *)&toaddr;
+            toaddr = (struct sockaddr *)&addr4;
             addrlen = sizeof(struct sockaddr_in);
 
-            addr->sin_family = domain_;
-            addr->sin_port = ::htons(port);
+            addr4.sin_family = domain_;
+            addr4.sin_port = ::htons(port);
 
-            if (::inet_pton(domain_, ipaddr.c_str(), &addr->sin_addr) != 1)
+            if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
                 stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
@@ -127,13 +131,13 @@ namespace loquat
         }
         else if (AF_INET6 == domain_)
         {
-            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&toaddr;
+            toaddr = (struct sockaddr *)&addr6;
             addrlen = sizeof(struct sockaddr_in6);
 
-            addr->sin6_family = domain_;
-            addr->sin6_port = ::htons(port);
+            addr6.sin6_family = domain_;
+            addr6.sin6_port = ::htons(port);
 
-            if (::inet_pton(domain_, ipaddr.c_str(), &addr->sin6_addr) != 1)
+            if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
                 stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
@@ -141,7 +145,7 @@ namespace loquat
             }
         }
 
-        if (::connect(sock_fd_, &toaddr, addrlen) == -1)
+        if (::connect(sock_fd_, toaddr, addrlen) == -1)
         {
             if (errno != EINPROGRESS)
             {
