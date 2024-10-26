@@ -74,7 +74,7 @@ namespace
 
         p_connector->Enqueue(stringToVector("Em, it's happy to see you."));
 
-        fut.wait();
+        fut.get();
 
         loquat::Epoll::GetInstance().Leave(p_connector->Sock());
         loquat::Epoll::GetInstance().Leave(p_listener->Sock());
@@ -174,7 +174,7 @@ namespace
 
         p_connector->Enqueue(stringToVector("EXIT"));
 
-        fut.wait();
+        fut.get();
 
         EXPECT_EQ(p_connector->Shouts.size(), p_connector->Echoes.size());
         EXPECT_EQ(p_connector->Shouts, p_connector->Echoes);

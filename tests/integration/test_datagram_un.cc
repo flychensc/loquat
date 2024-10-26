@@ -53,7 +53,7 @@ namespace
 
         p_peer_c->Enqueue("/tmp/peer_s", stringToVector("Em, it's happy to see you."));
 
-        fut.wait();
+        fut.get();
 
         loquat::Epoll::GetInstance().Leave(p_peer_c->Sock());
         loquat::Epoll::GetInstance().Leave(p_peer_s->Sock());
@@ -129,7 +129,7 @@ namespace
 
         p_peer_c->Enqueue("/tmp/peer_s", stringToVector("EXIT"));
 
-        fut.wait();
+        fut.get();
 
         EXPECT_EQ(p_peer_c->Shouts.size(), p_peer_c->Echoes.size());
         EXPECT_EQ(p_peer_c->Shouts, p_peer_c->Echoes);
