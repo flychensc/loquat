@@ -26,12 +26,12 @@ namespace loquat
 
         auto &outbuf = io_buffer_.write_queue_;
 
-        while (!outbuf.empty())
+        if (!outbuf.empty())
         {
             auto entry = outbuf.front();
-            auto &dest_addr = get<0>(entry);
-            auto &addrlen = get<1>(entry);
-            auto &msg = get<2>(entry);
+            auto dest_addr = get<0>(entry);
+            auto addrlen = get<1>(entry);
+            auto msg = get<2>(entry);
 
             auto written = ::sendto(sock_fd, msg.data(), msg.size(), 0, &dest_addr, addrlen);
 
