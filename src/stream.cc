@@ -7,6 +7,8 @@
 
 #include "stream.h"
 
+#include <spdlog/spdlog.h>
+
 namespace loquat
 {
     using namespace std;
@@ -25,11 +27,18 @@ namespace loquat
 
         io_buffer_.bytes_needed_ = bytes_needed;
 
+        if (bytes_needed == 0)
+        {
+            spdlog::warn("bytes_needed 0");
+        }
+
         // Resize if needed
         auto &inbuf = io_buffer_.read_buffer_;
         if (bytes_needed > inbuf.size())
         {
             inbuf.resize(bytes_needed);
+
+            spdlog::warn("resize inbuf");
         }
     }
 
