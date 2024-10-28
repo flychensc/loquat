@@ -80,6 +80,11 @@ namespace loquat
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
+        if (fd_pollers_.find(sock_fd) == fd_pollers_.end())
+        {
+            return;
+        }
+
         /*1.delete from epoll*/
         if (::epoll_ctl(epollfd_, EPOLL_CTL_DEL, sock_fd, NULL) == -1)
         {
@@ -107,6 +112,11 @@ namespace loquat
             for (i = 0; i < nfds; ++i)
             {
                 std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+                if (fd_pollers_.find(events[i].data.fd) == fd_pollers_.end())
+                {
+                    continue;
+                }
 
                 auto poller_ptr = fd_pollers_.at(events[i].data.fd);
                 auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
