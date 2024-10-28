@@ -15,9 +15,9 @@ namespace loquat
 {
     using namespace std;
 
-    Epoll &Epoll::GetInstance()
+    std::shared_ptr<Epoll> Epoll::GetInstance()
     {
-        static Epoll single;
+        static std::shared_ptr<Epoll> single = std::make_shared<Epoll>();
         return single;
     }
 

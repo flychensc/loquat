@@ -31,7 +31,7 @@ namespace
 
             if (data.size() == 1024)
             {
-                loquat::Epoll::GetInstance().Terminate();
+                loquat::Epoll::GetInstance()->Terminate();
             }
         }
 
@@ -70,13 +70,13 @@ namespace
         TestListener() : Listener(AF_UNIX, kMaxConnections) {};
         ~TestListener()
         {
-            loquat::Epoll::GetInstance().Leave(connection_ptr->Sock());
+            loquat::Epoll::GetInstance()->Leave(connection_ptr->Sock());
         }
 
         void OnAccept(int listen_sock) override
         {
             connection_ptr = std::make_shared<TestConnection>(listen_sock);
-            loquat::Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
+            loquat::Epoll::GetInstance()->Join(connection_ptr->Sock(), connection_ptr);
         }
 
     private:
@@ -86,16 +86,16 @@ namespace
     TEST(Stream_UN, send_receive)
     {
         auto p_listener = std::make_shared<TestListener>();
-        loquat::Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
+        loquat::Epoll::GetInstance()->Join(p_listener->Sock(), p_listener);
         p_listener->Listen("/tmp/listener");
 
         auto p_connector = std::make_shared<TestConnector>();
-        loquat::Epoll::GetInstance().Join(p_connector->Sock(), p_connector);
+        loquat::Epoll::GetInstance()->Join(p_connector->Sock(), p_connector);
         p_connector->Bind("/tmp/connector");
         p_connector->Connect("/tmp/listener");
 
         std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
+                                           { loquat::Epoll::GetInstance()->Wait(); });
 
         p_connector->Enqueue(std::vector<loquat::Byte>(4));
 
@@ -103,8 +103,8 @@ namespace
 
         fut.get();
 
-        loquat::Epoll::GetInstance().Leave(p_connector->Sock());
-        loquat::Epoll::GetInstance().Leave(p_listener->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_connector->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_listener->Sock());
     }
 
     class TestShouter : public loquat::Connector
@@ -124,7 +124,7 @@ namespace
             std::string flag(data.begin(), data.end());
             if (flag == "EXIT")
             {
-                loquat::Epoll::GetInstance().Terminate();
+                loquat::Epoll::GetInstance()->Terminate();
             }
         }
 
@@ -162,13 +162,13 @@ namespace
         TestEchoListener() : Listener(AF_UNIX, kMaxConnections) {};
         ~TestEchoListener()
         {
-            loquat::Epoll::GetInstance().Leave(connection_ptr->Sock());
+            loquat::Epoll::GetInstance()->Leave(connection_ptr->Sock());
         }
 
         void OnAccept(int listen_sock) override
         {
             connection_ptr = std::make_shared<TestEcho>(listen_sock);
-            loquat::Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
+            loquat::Epoll::GetInstance()->Join(connection_ptr->Sock(), connection_ptr);
         }
 
     private:
@@ -178,16 +178,16 @@ namespace
     TEST(Stream_UN, 10kRuns)
     {
         auto p_listener = std::make_shared<TestEchoListener>();
-        loquat::Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
+        loquat::Epoll::GetInstance()->Join(p_listener->Sock(), p_listener);
         p_listener->Listen("/tmp/listener");
 
         auto p_connector = std::make_shared<TestShouter>();
-        loquat::Epoll::GetInstance().Join(p_connector->Sock(), p_connector);
+        loquat::Epoll::GetInstance()->Join(p_connector->Sock(), p_connector);
         p_connector->Bind("/tmp/connector");
         p_connector->Connect("/tmp/listener");
 
         std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
+                                           { loquat::Epoll::GetInstance()->Wait(); });
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -213,7 +213,7 @@ namespace
         EXPECT_EQ(p_connector->Shouts.size(), p_connector->Echoes.size());
         EXPECT_EQ(p_connector->Shouts, p_connector->Echoes);
 
-        loquat::Epoll::GetInstance().Leave(p_connector->Sock());
-        loquat::Epoll::GetInstance().Leave(p_listener->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_connector->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_listener->Sock());
     }
 }

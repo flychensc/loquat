@@ -23,7 +23,7 @@ public:
         std::cout << "Receive from " << from_string << ":" << ::ntohs(from->sin_port) << " " << data.size() << " bytes: ";
         std::cout << data.data() << std::endl;
 
-        Epoll::GetInstance().Terminate();
+        Epoll::GetInstance()->Terminate();
     }
 };
 
@@ -33,7 +33,7 @@ int main(int argc,     // Number of strings in array argv
 {
     auto p_peer_c = std::make_shared<PeerC>();
 
-    Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
+    Epoll::GetInstance()->Join(p_peer_c->Sock(), p_peer_c);
 
     auto msg = std::string("Hello World");
     std::vector<Byte> data(msg.data(), msg.data() + msg.size());
@@ -44,9 +44,9 @@ int main(int argc,     // Number of strings in array argv
 
     p_peer_c->Bind("127.0.0.1", 30058);
 
-    Epoll::GetInstance().Wait();
+    Epoll::GetInstance()->Wait();
 
-    Epoll::GetInstance().Leave(p_peer_c->Sock());
+    Epoll::GetInstance()->Leave(p_peer_c->Sock());
 
     return 0;
 }

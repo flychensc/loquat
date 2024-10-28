@@ -45,7 +45,7 @@ public:
         std::getline(std::cin, msg);
 
         // detect `quit`
-        // Epoll::GetInstance().Terminate();
+        // Epoll::GetInstance()->Terminate();
 
         if (!client_.expired())
         {
@@ -68,16 +68,16 @@ int main(int argc,     // Number of strings in array argv
         name = argv[1];
     }
     auto p_client = std::make_shared<ChatClient>(name);
-    Epoll::GetInstance().Join(p_client->Sock(), p_client);
+    Epoll::GetInstance()->Join(p_client->Sock(), p_client);
 
     auto p_console = std::make_shared<Console>(p_client);
-    Epoll::GetInstance().Join(STDIN_FILENO, p_console);
+    Epoll::GetInstance()->Join(STDIN_FILENO, p_console);
 
     p_client->Connect("127.0.0.1", 300158);
 
-    Epoll::GetInstance().Wait();
+    Epoll::GetInstance()->Wait();
 
-    Epoll::GetInstance().Leave(p_client->Sock());
+    Epoll::GetInstance()->Leave(p_client->Sock());
 
     return 0;
 }

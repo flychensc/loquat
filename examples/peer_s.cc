@@ -34,11 +34,11 @@ int main(int argc,     // Number of strings in array argv
 {
     auto p_peer_s = std::make_shared<PeerS>();
 
-    Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
+    Epoll::GetInstance()->Join(p_peer_s->Sock(), p_peer_s);
 
     p_peer_s->Bind("127.0.0.1", 30018);
 
-    Epoll::GetInstance().Wait();
+    Epoll::GetInstance()->Wait();
 
     return 0;
 }

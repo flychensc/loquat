@@ -54,7 +54,7 @@ void ChatServer::OnAccept(int listen_sock)
 
     sessions_.insert({connection_ptr->Sock(), connection_ptr});
 
-    Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
+    Epoll::GetInstance()->Join(connection_ptr->Sock(), connection_ptr);
 }
 
 void ChatServer::Broadcast(const std::vector<Byte> &data)
@@ -72,11 +72,11 @@ int main(int argc,     // Number of strings in array argv
 {
     auto p_serverd = std::make_shared<ChatServer>();
 
-    Epoll::GetInstance().Join(p_serverd->Sock(), p_serverd);
+    Epoll::GetInstance()->Join(p_serverd->Sock(), p_serverd);
 
     p_serverd->Listen("0.0.0.0", 300158);
 
-    Epoll::GetInstance().Wait();
+    Epoll::GetInstance()->Wait();
 
     return 0;
 }

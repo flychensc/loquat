@@ -22,7 +22,7 @@ namespace
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
-            loquat::Epoll::GetInstance().Terminate();
+            loquat::Epoll::GetInstance()->Terminate();
         }
     };
 
@@ -47,13 +47,13 @@ namespace
         TestListener() : Listener(AF_INET6, kMaxConnections) {};
         ~TestListener()
         {
-            loquat::Epoll::GetInstance().Leave(connection_ptr->Sock());
+            loquat::Epoll::GetInstance()->Leave(connection_ptr->Sock());
         }
 
         void OnAccept(int listen_sock) override
         {
             connection_ptr = std::make_shared<TestConnection>(listen_sock);
-            loquat::Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
+            loquat::Epoll::GetInstance()->Join(connection_ptr->Sock(), connection_ptr);
         }
 
     private:
@@ -63,23 +63,23 @@ namespace
     TEST(Stream_IPv6, send_receive)
     {
         auto p_listener = std::make_shared<TestListener>();
-        loquat::Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
+        loquat::Epoll::GetInstance()->Join(p_listener->Sock(), p_listener);
         p_listener->Listen("::1", 170504);
 
         auto p_connector = std::make_shared<TestConnector>();
-        loquat::Epoll::GetInstance().Join(p_connector->Sock(), p_connector);
+        loquat::Epoll::GetInstance()->Join(p_connector->Sock(), p_connector);
         p_connector->Bind("::1", 230510);
         p_connector->Connect("::1", 170504);
 
         std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
+                                           { loquat::Epoll::GetInstance()->Wait(); });
 
         p_connector->Enqueue(stringToVector("Em, it's happy to see you."));
 
         fut.get();
 
-        loquat::Epoll::GetInstance().Leave(p_connector->Sock());
-        loquat::Epoll::GetInstance().Leave(p_listener->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_connector->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_listener->Sock());
     }
 
     class TestShouter : public loquat::Connector
@@ -96,7 +96,7 @@ namespace
                 std::string flag(reinterpret_cast<char *>(Echoes.data()) + (Echoes.size() - 4), 4);
                 if (flag == "EXIT")
                 {
-                    loquat::Epoll::GetInstance().Terminate();
+                    loquat::Epoll::GetInstance()->Terminate();
                 }
             }
         }
@@ -131,13 +131,13 @@ namespace
         TestEchoListener() : Listener(AF_INET6, kMaxConnections) {};
         ~TestEchoListener()
         {
-            loquat::Epoll::GetInstance().Leave(connection_ptr->Sock());
+            loquat::Epoll::GetInstance()->Leave(connection_ptr->Sock());
         }
 
         void OnAccept(int listen_sock) override
         {
             connection_ptr = std::make_shared<TestEcho>(listen_sock);
-            loquat::Epoll::GetInstance().Join(connection_ptr->Sock(), connection_ptr);
+            loquat::Epoll::GetInstance()->Join(connection_ptr->Sock(), connection_ptr);
         }
 
     private:
@@ -147,16 +147,16 @@ namespace
     TEST(Stream_IPv6, 10kRuns)
     {
         auto p_listener = std::make_shared<TestEchoListener>();
-        loquat::Epoll::GetInstance().Join(p_listener->Sock(), p_listener);
+        loquat::Epoll::GetInstance()->Join(p_listener->Sock(), p_listener);
         p_listener->Listen("::1", 170504);
 
         auto p_connector = std::make_shared<TestShouter>();
-        loquat::Epoll::GetInstance().Join(p_connector->Sock(), p_connector);
+        loquat::Epoll::GetInstance()->Join(p_connector->Sock(), p_connector);
         p_connector->Bind("::1", 230510);
         p_connector->Connect("::1", 170504);
 
         std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
+                                           { loquat::Epoll::GetInstance()->Wait(); });
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -183,7 +183,7 @@ namespace
         EXPECT_EQ(p_connector->Shouts.size(), p_connector->Echoes.size());
         EXPECT_EQ(p_connector->Shouts, p_connector->Echoes);
 
-        loquat::Epoll::GetInstance().Leave(p_connector->Sock());
-        loquat::Epoll::GetInstance().Leave(p_listener->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_connector->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_listener->Sock());
     }
 }

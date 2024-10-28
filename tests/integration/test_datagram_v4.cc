@@ -30,29 +30,29 @@ namespace
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
-            loquat::Epoll::GetInstance().Terminate();
+            loquat::Epoll::GetInstance()->Terminate();
         }
     };
 
     TEST(Datagram_IPv4, send_receive)
     {
         auto p_peer_s = std::make_shared<TestPeerS>();
-        loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
+        loquat::Epoll::GetInstance()->Join(p_peer_s->Sock(), p_peer_s);
         p_peer_s->Bind("127.0.0.1", 16138);
 
         auto p_peer_c = std::make_shared<TestPeerC>();
-        loquat::Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
+        loquat::Epoll::GetInstance()->Join(p_peer_c->Sock(), p_peer_c);
         p_peer_c->Bind("127.0.0.1", 27149);
 
         std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
+                                           { loquat::Epoll::GetInstance()->Wait(); });
 
         p_peer_c->Enqueue("127.0.0.1", 16138, stringToVector("Em, it's happy to see you."));
 
         fut.get();
 
-        loquat::Epoll::GetInstance().Leave(p_peer_c->Sock());
-        loquat::Epoll::GetInstance().Leave(p_peer_s->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_peer_c->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_peer_s->Sock());
     }
 
     class TestEcho : public loquat::Peer
@@ -73,7 +73,7 @@ namespace
 
             if (data.size() == 4)
             {
-                loquat::Epoll::GetInstance().Terminate();
+                loquat::Epoll::GetInstance()->Terminate();
             }
         }
 
@@ -91,15 +91,15 @@ namespace
     TEST(Datagram_IPv4, 10kRuns)
     {
         auto p_peer_s = std::make_shared<TestEcho>();
-        loquat::Epoll::GetInstance().Join(p_peer_s->Sock(), p_peer_s);
+        loquat::Epoll::GetInstance()->Join(p_peer_s->Sock(), p_peer_s);
         p_peer_s->Bind("127.0.0.1", 16138);
 
         auto p_peer_c = std::make_shared<TestShouter>();
-        loquat::Epoll::GetInstance().Join(p_peer_c->Sock(), p_peer_c);
+        loquat::Epoll::GetInstance()->Join(p_peer_c->Sock(), p_peer_c);
         p_peer_c->Bind("127.0.0.1", 27149);
 
         std::future<void> fut = std::async(std::launch::async, []
-                                           { loquat::Epoll::GetInstance().Wait(); });
+                                           { loquat::Epoll::GetInstance()->Wait(); });
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -126,7 +126,7 @@ namespace
         EXPECT_EQ(p_peer_c->Shouts.size(), p_peer_c->Echoes.size());
         EXPECT_EQ(p_peer_c->Shouts, p_peer_c->Echoes);
 
-        loquat::Epoll::GetInstance().Leave(p_peer_c->Sock());
-        loquat::Epoll::GetInstance().Leave(p_peer_s->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_peer_c->Sock());
+        loquat::Epoll::GetInstance()->Leave(p_peer_s->Sock());
     }
 }
