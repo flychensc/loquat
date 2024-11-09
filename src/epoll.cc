@@ -139,6 +139,18 @@ namespace loquat
                             throw runtime_error(errinfo.str());
                         }
 
+                        if (optval == 0)
+                        {
+                            ssize_t result = recv(events[i].data.fd, nullptr, 0, MSG_DONTWAIT);
+                            if (result < 0)
+                            {
+                                if (errno != ENOTCONN)
+                                {
+                                    optval = 1;
+                                }
+                            }
+                        }
+
                         if (optval != 0)
                         {
                             onSocketClose(events[i].data.fd);
