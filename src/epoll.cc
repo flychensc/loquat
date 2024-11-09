@@ -104,6 +104,7 @@ namespace loquat
         int i, nfds;
         struct epoll_event events[maxevents_];
 
+        assert(!fd_pollers_.empty());
         loop_flag_ = true;
         while (loop_flag_.load(std::memory_order_acquire))
         {
@@ -194,6 +195,12 @@ namespace loquat
         {
             /*4. callback*/
             closalbe_ptr->OnClose(sock_fd);
+        }
+
+        // stop wait if no fd set
+        if (fd_pollers_.empty())
+        {
+            loop_flag_.store(false);
         }
     }
 
