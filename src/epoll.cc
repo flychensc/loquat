@@ -127,7 +127,7 @@ namespace loquat
                 }
                 else
                 {
-                    if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
+                    if (events[i].events & EPOLLHUP)
                     {
                         // confirm socket state
                         ssize_t result = recv(events[i].data.fd, nullptr, 0, MSG_DONTWAIT);
@@ -140,6 +140,12 @@ namespace loquat
                                 continue;
                             }
                         }
+                    }
+                    if (events[i].events & EPOLLRDHUP)
+                    {
+                        onSocketClose(events[i].data.fd);
+                        // ignore EPOLLOUT
+                        continue;
                     }
 
                     if (events[i].events & EPOLLIN)
