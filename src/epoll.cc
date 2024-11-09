@@ -129,33 +129,15 @@ namespace loquat
                     if (events[i].events & (EPOLLRDHUP | EPOLLHUP))
                     {
                         // confirm socket state
-                        int optval;
-                        socklen_t optlen = sizeof(optval);
-
-                        if (::getsockopt(events[i].data.fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
+                        ssize_t result = recv(events[i].data.fd, nullptr, 0, MSG_DONTWAIT);
+                        if (result < 0)
                         {
-                            stringstream errinfo;
-                            errinfo << "getsockopt:" << strerror(errno);
-                            throw runtime_error(errinfo.str());
-                        }
-
-                        if (optval == 0)
-                        {
-                            ssize_t result = recv(events[i].data.fd, nullptr, 0, MSG_DONTWAIT);
-                            if (result < 0)
+                            if ((errno != ENOTCONN) && (errno != EAGAIN) && (errno != EWOULDBLOCK))
                             {
-                                if (errno != ENOTCONN)
-                                {
-                                    optval = 1;
-                                }
+                                onSocketClose(events[i].data.fd);
+                                // ignore EPOLLOUT
+                                continue;
                             }
-                        }
-
-                        if (optval != 0)
-                        {
-                            onSocketClose(events[i].data.fd);
-                            // ignore EPOLLOUT
-                            continue;
                         }
                     }
 
