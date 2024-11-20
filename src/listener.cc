@@ -33,6 +33,8 @@ namespace loquat
 
         /*2.set non-block*/
         ::fcntl(sock_fd_, F_SETFL, ::fcntl(sock_fd_, F_GETFL) | O_NONBLOCK);
+        // set close-on-exec
+        ::fcntl(sock_fd_, F_SETFD, FD_CLOEXEC);
 
         spdlog::debug("Connection:{}", sock_fd_);
     }
