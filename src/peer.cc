@@ -18,7 +18,7 @@ namespace loquat
 
     Peer::Peer(int domain) : domain_(domain)
     {
-        sock_fd_ = ::socket(domain_, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+        sock_fd_ = ::socket(domain_, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (sock_fd_ == -1)
         {
             stringstream errinfo;

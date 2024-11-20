@@ -47,7 +47,7 @@ namespace loquat
     Listener::Listener(int domain, int max_connections) : domain_(domain),
                                                           backlog_(max_connections)
     {
-        listen_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK, 0);
+        listen_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (listen_fd_ == -1)
         {
             stringstream errinfo;

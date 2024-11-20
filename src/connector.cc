@@ -20,7 +20,7 @@ namespace loquat
                                                           domain_(domain),
                                                           connect_flag_(false)
     {
-        sock_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK, 0);
+        sock_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (sock_fd_ == -1)
         {
             stringstream errinfo;
