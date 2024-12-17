@@ -148,7 +148,7 @@ namespace loquat
             }
         }
 
-        Datagram::Enqueue(toaddr, data);
+        Enqueue(toaddr, data);
     }
 
     void Peer::Enqueue(const std::string &to_path, const std::vector<Byte> &data)
@@ -159,7 +159,7 @@ namespace loquat
         toaddr.addr.un.sun_family = domain_;
         ::strcpy(toaddr.addr.un.sun_path, to_path.c_str());
 
-        Datagram::Enqueue(toaddr, data);
+        Enqueue(toaddr, data);
     }
 
     void Peer::OnWrite(int sock_fd)
