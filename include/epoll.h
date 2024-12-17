@@ -60,6 +60,7 @@ namespace loquat
 
     private:
         int epollfd_;
+        int efd_;
         int maxevents_;
         std::atomic<bool> loop_flag_;
 

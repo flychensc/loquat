@@ -6,6 +6,7 @@
 #include <string.h>
 #include <spdlog/spdlog.h>
 #include <sys/epoll.h>
+#include <sys/eventfd.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -30,11 +31,31 @@ namespace loquat
             errinfo << "epoll_create1:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+
+        efd_ = eventfd(0, EFD_NONBLOCK);
+        if (efd_ == -1)
+        {
+            stringstream errinfo;
+            errinfo << "Failed to create eventfd:" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
+        struct epoll_event ev = {0};
+        ev.events = EPOLLIN;
+        ev.data.fd = efd_;
+        if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, efd_, &ev) == -1)
+        {
+            stringstream errinfo;
+            errinfo << "Failed to add eventfd to epoll:" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
         spdlog::debug("Epoll:{}", epollfd_);
     }
 
     Epoll::~Epoll()
     {
+        ::close(efd_);
         ::close(epollfd_);
         spdlog::debug("~Epoll:{}", epollfd_);
     }
@@ -312,6 +333,9 @@ namespace loquat
 
     void Epoll::Terminate()
     {
+        uint64_t value = 1;
+        write(efd_, &value, sizeof(value));
+
         loop_flag_.store(false, std::memory_order_acquire);
     }
 
