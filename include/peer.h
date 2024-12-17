@@ -33,6 +33,8 @@ namespace loquat
          */
         void Bind(const std::string &unix_path);
 
+        void Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data);
+
         /** @brief enqueue output data
          * @param ipaddr destination ip
          * @param port destination port
@@ -46,7 +48,15 @@ namespace loquat
          */
         void Enqueue(const std::string &to_path, const std::vector<Byte> &data);
 
+    protected:
+        void OnWrite(int sock_fd) override;
+
     private:
+        void SetReadReady();
+        void ClearReadReady();
+        void SetWriteReady();
+        void ClearWriteReady();
+
         int domain_;
         int sock_fd_;
     };

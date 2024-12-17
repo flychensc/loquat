@@ -24,7 +24,7 @@ public:
         std::cout << data.data() << std::endl;
 
         // Echo back
-        Datagram::Enqueue(fromaddr, data);
+        Enqueue(fromaddr, data);
     }
 };
 

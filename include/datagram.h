@@ -15,6 +15,11 @@ namespace loquat
         void Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data);
 
     protected:
+        /** @brief Total pkts queued
+         * @return Total pkts queued
+         */
+        int PktsEnqueued(void);
+
         virtual void OnRecv(const SockAddr &fromaddr, const std::vector<Byte> &data) = 0;
 
         void OnRead(int sock_fd) override;

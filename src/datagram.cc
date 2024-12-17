@@ -55,6 +55,15 @@ namespace loquat
         }
     }
 
+    int Datagram::PktsEnqueued(void)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        auto &outbuf = io_buffer_.write_queue_;
+
+        return outbuf.size();
+    }
+
     void Datagram::OnRead(int sock_fd)
     {
         SockAddr src_addr;

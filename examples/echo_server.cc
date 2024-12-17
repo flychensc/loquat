@@ -8,7 +8,7 @@ using namespace loquat;
 class EchoConnection : public Connection
 {
 public:
-    EchoConnection(int listen_fd) : Connection(listen_fd) {};
+    EchoConnection(int listen_fd) : Connection(listen_fd) {}
 
     void OnRecv(const std::vector<Byte> &data) override
     {

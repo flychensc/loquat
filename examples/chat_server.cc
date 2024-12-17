@@ -12,7 +12,7 @@ class ChatServer;
 class ChatSession : public Connection
 {
 public:
-    ChatSession(int listen_fd, ChatServer *p_server) : Connection(listen_fd), server_(p_server) {};
+    ChatSession(int listen_fd, ChatServer *p_server) : Connection(listen_fd), server_(p_server) {}
 
     void OnClose(int sock_fd) override;
     void OnRecv(const std::vector<Byte> &data) override;
@@ -25,10 +25,10 @@ class ChatServer : public Listener
 {
 public:
     static const int kMaxConnections = 50;
-    ChatServer() : Listener(kMaxConnections) {};
+    ChatServer() : Listener(kMaxConnections) {}
 
     void OnAccept(int listen_sock) override;
-    void Remove(int sess_fd) { sessions_.erase(sess_fd); };
+    void Remove(int sess_fd) { sessions_.erase(sess_fd); }
 
     void Broadcast(const std::vector<Byte> &data);
 

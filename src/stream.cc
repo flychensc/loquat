@@ -42,6 +42,15 @@ namespace loquat
         }
     }
 
+    int Stream::PktsEnqueued(void)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        auto &outbuf = io_buffer_.write_queue_;
+
+        return outbuf.size();
+    }
+
     void Stream::OnWrite(int sock_fd)
     {
         std::lock_guard<std::mutex> lock(mutex_);

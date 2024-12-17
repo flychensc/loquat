@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "peer.h"
+#include "epoll.h"
 
 namespace loquat
 {
@@ -107,6 +108,13 @@ namespace loquat
         }
     }
 
+    void Peer::Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data)
+    {
+        Datagram::Enqueue(toaddr, data);
+        if (PktsEnqueued() > 0)
+            SetWriteReady();
+    }
+
     void Peer::Enqueue(const std::string &to_ip, int port, const std::vector<Byte> &data)
     {
         SockAddr toaddr;
@@ -152,5 +160,22 @@ namespace loquat
         ::strcpy(toaddr.addr.un.sun_path, to_path.c_str());
 
         Datagram::Enqueue(toaddr, data);
+    }
+
+    void Peer::OnWrite(int sock_fd)
+    {
+        Datagram::OnWrite(sock_fd);
+        if (PktsEnqueued() == 0)
+            ClearWriteReady();
+    }
+
+    void Peer::SetWriteReady()
+    {
+        Epoll::GetInstance()->DataOutReady(Sock());
+    }
+
+    void Peer::ClearWriteReady()
+    {
+        Epoll::GetInstance()->DataOutClear(Sock());
     }
 }

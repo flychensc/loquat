@@ -13,7 +13,7 @@ using namespace loquat;
 class ChatClient : public Connector
 {
 public:
-    ChatClient(std::string name) : name_(name), Connector() {};
+    ChatClient(std::string name) : name_(name), Connector() {}
 
     void OnRecv(const std::vector<Byte> &data) override
     {
@@ -37,8 +37,8 @@ private:
 class Console : public ReadWritable
 {
 public:
-    Console(std::shared_ptr<ChatClient> client_ptr) : client_(client_ptr) {};
-    void OnWrite(int sock_fd) override {};
+    Console(std::shared_ptr<ChatClient> client_ptr) : client_(client_ptr) {}
+    void OnWrite(int sock_fd) override { Epoll::GetInstance()->DataOutClear(STDIN_FILENO); }
     void OnRead(int sock_fd) override
     {
         std::string msg;
@@ -52,7 +52,7 @@ public:
             auto client_ptr = client_.lock();
             client_ptr->Say(msg);
         }
-    };
+    }
 
 private:
     std::weak_ptr<ChatClient> client_;

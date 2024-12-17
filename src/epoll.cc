@@ -99,6 +99,154 @@ namespace loquat
         spdlog::debug("Epoll Leave:{}", sock_fd);
     }
 
+    void Epoll::DataOutReady(int sock_fd)
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        struct epoll_event ev = {0};
+
+        /*1. locate*/
+        auto poller_ptr = fd_pollers_.at(sock_fd);
+
+        /*2. modify to epoll*/
+        auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
+        if (acceptable_ptr)
+        {
+            ev.events |= EPOLLIN;
+        }
+        auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
+        if (closalbe_ptr)
+        {
+            ev.events |= EPOLLRDHUP | EPOLLHUP;
+        }
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
+        {
+            ev.events |= EPOLLIN | EPOLLOUT;
+        }
+        ev.data.fd = sock_fd;
+
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_MOD, sock_fd, &ev) == -1)
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_MOD(DataOutReady):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
+        spdlog::debug("Epoll DataOutReady:{} with events:0x{:X}", sock_fd, static_cast<unsigned int>(ev.events));
+    }
+
+    void Epoll::DataOutClear(int sock_fd)
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        struct epoll_event ev = {0};
+
+        /*1. locate*/
+        auto poller_ptr = fd_pollers_.at(sock_fd);
+
+        /*2. modify to epoll*/
+        auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
+        if (acceptable_ptr)
+        {
+            ev.events |= EPOLLIN;
+        }
+        auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
+        if (closalbe_ptr)
+        {
+            ev.events |= EPOLLRDHUP | EPOLLHUP;
+        }
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
+        {
+            ev.events |= EPOLLIN;
+        }
+        ev.data.fd = sock_fd;
+
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_MOD, sock_fd, &ev) == -1)
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_MOD(DataOutClear):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
+        spdlog::debug("Epoll DataOutClear:{} with events:0x{:X}", sock_fd, static_cast<unsigned int>(ev.events));
+    }
+
+    void Epoll::DataInResume(int sock_fd)
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        struct epoll_event ev = {0};
+
+        /*1. locate*/
+        auto poller_ptr = fd_pollers_.at(sock_fd);
+
+        /*2. modify to epoll*/
+        auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
+        if (acceptable_ptr)
+        {
+            ev.events |= EPOLLIN;
+        }
+        auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
+        if (closalbe_ptr)
+        {
+            ev.events |= EPOLLRDHUP | EPOLLHUP;
+        }
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
+        {
+            ev.events |= EPOLLIN | EPOLLOUT;
+        }
+        ev.data.fd = sock_fd;
+
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_MOD, sock_fd, &ev) == -1)
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_MOD(DataInResume):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
+        spdlog::debug("Epoll DataInResume:{} with events:0x{:X}", sock_fd, static_cast<unsigned int>(ev.events));
+    }
+
+    void Epoll::DataInPause(int sock_fd)
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        struct epoll_event ev = {0};
+
+        /*1. locate*/
+        auto poller_ptr = fd_pollers_.at(sock_fd);
+
+        /*2. modify to epoll*/
+        auto acceptable_ptr = dynamic_pointer_cast<Acceptable>(poller_ptr);
+        if (acceptable_ptr)
+        {
+            ev.events |= EPOLLIN;
+        }
+        auto closalbe_ptr = dynamic_pointer_cast<Closable>(poller_ptr);
+        if (closalbe_ptr)
+        {
+            ev.events |= EPOLLRDHUP | EPOLLHUP;
+        }
+        auto readwritalbe_ptr = dynamic_pointer_cast<ReadWritable>(poller_ptr);
+        if (readwritalbe_ptr)
+        {
+            ev.events |= EPOLLOUT;
+        }
+        ev.data.fd = sock_fd;
+
+        if (::epoll_ctl(epollfd_, EPOLL_CTL_MOD, sock_fd, &ev) == -1)
+        {
+            stringstream errinfo;
+            errinfo << "epoll_ctl: EPOLL_CTL_MOD(DataInPause):" << strerror(errno);
+            throw runtime_error(errinfo.str());
+        }
+
+        spdlog::debug("Epoll DataInPause:{} with events:0x{:X}", sock_fd, static_cast<unsigned int>(ev.events));
+    }
+
     void Epoll::Wait()
     {
         int i, nfds;

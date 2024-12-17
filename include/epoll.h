@@ -33,6 +33,24 @@ namespace loquat
          */
         void Leave(int sock_fd);
 
+        /** @brief Indicate that data is ready to be sent out socket
+         * @param sock_fd The socket id
+         */
+        void DataOutReady(int sock_fd);
+        /** @brief Indicate no data is ready to be sent out socket
+         * @param sock_fd The socket id
+         */
+        void DataOutClear(int sock_fd);
+
+        /** @brief Indicate that reads from the socket will be serviced
+         * @param sock_fd The socket id
+         */
+        void DataInResume(int sock_fd);
+        /** @brief Indicate that the reads from the socket should be disabled
+         * @param sock_fd The socket id
+         */
+        void DataInPause(int sock_fd);
+
         /** @brief start epoll loop
          */
         void Wait();

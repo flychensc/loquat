@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "connector.h"
+#include "epoll.h"
 
 namespace loquat
 {
@@ -174,6 +175,13 @@ namespace loquat
         }
     }
 
+    void Connector::Enqueue(const std::vector<Byte> &data)
+    {
+        Stream::Enqueue(data);
+        if (PktsEnqueued() > 0)
+            SetWriteReady();
+    }
+
     void Connector::OnRead(int sock_fd)
     {
         if (connect_flag_)
@@ -201,5 +209,22 @@ namespace loquat
             /*connected*/
             connect_flag_ = true;
         }
+    }
+
+    void Connector::OnWrite(int sock_fd)
+    {
+        Stream::OnWrite(sock_fd);
+        if (PktsEnqueued() == 0)
+            ClearWriteReady();
+    }
+
+    void Connector::SetWriteReady()
+    {
+        Epoll::GetInstance()->DataOutReady(Sock());
+    }
+
+    void Connector::ClearWriteReady()
+    {
+        Epoll::GetInstance()->DataOutClear(Sock());
     }
 }

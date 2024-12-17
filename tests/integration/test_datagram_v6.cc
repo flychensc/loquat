@@ -21,7 +21,7 @@ namespace
         {
             EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
 
-            Datagram::Enqueue(fromaddr, stringToVector("Good to see you too."));
+            Enqueue(fromaddr, stringToVector("Good to see you too."));
         }
     };
 
@@ -66,7 +66,7 @@ namespace
 
         void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
         {
-            Datagram::Enqueue(fromaddr, data);
+            Enqueue(fromaddr, data);
         }
     };
 

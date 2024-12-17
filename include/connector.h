@@ -44,9 +44,22 @@ namespace loquat
          */
         void Connect(const std::string &unix_path);
 
+        /** @brief enqueue output data
+         * @param data output data
+         */
+        void Enqueue(const std::vector<Byte> &data);
+
         void OnRead(int sock_fd) override;
 
+    protected:
+        void OnWrite(int sock_fd) override;
+
     private:
+        void SetReadReady();
+        void ClearReadReady();
+        void SetWriteReady();
+        void ClearWriteReady();
+
         int domain_;
         int sock_fd_;
         bool connect_flag_;

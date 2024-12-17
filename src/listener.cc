@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "listener.h"
+#include "epoll.h"
 
 namespace loquat
 {
@@ -150,5 +151,29 @@ namespace loquat
             errinfo << "listen:" << strerror(errno);
             throw runtime_error(errinfo.str());
         }
+    }
+
+    void Connection::Enqueue(const std::vector<Byte> &data)
+    {
+        Stream::Enqueue(data);
+        if (PktsEnqueued() > 0)
+            SetWriteReady();
+    }
+
+    void Connection::OnWrite(int sock_fd)
+    {
+        Stream::OnWrite(sock_fd);
+        if (PktsEnqueued() == 0)
+            ClearWriteReady();
+    }
+
+    void Connection::SetWriteReady()
+    {
+        Epoll::GetInstance()->DataOutReady(Sock());
+    }
+
+    void Connection::ClearWriteReady()
+    {
+        Epoll::GetInstance()->DataOutClear(Sock());
     }
 }

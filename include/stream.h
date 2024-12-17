@@ -32,6 +32,11 @@ namespace loquat
          */
         void SetBytesNeeded(std::size_t bytes_needed);
 
+        /** @brief Total pkts queued
+         * @return Total pkts queued
+         */
+        int PktsEnqueued(void);
+
         void OnClose(int sock_fd) override {};
         void OnWrite(int sock_fd) override;
         void OnRead(int sock_fd) override;
