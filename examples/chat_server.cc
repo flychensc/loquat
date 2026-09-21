@@ -15,7 +15,7 @@ public:
     ChatSession(int listen_fd, ChatServer *p_server) : Connection(listen_fd), server_(p_server) {}
 
     void OnClose(int sock_fd) override;
-    void OnRecv(const std::vector<Byte> &data) override;
+    void OnRecv(std::vector<Byte> data) override;
 
 private:
     ChatServer *server_;
@@ -42,7 +42,7 @@ void ChatSession::OnClose(int sock_fd)
     server_->Remove(sock_fd);
 }
 
-void ChatSession::OnRecv(const std::vector<Byte> &data)
+void ChatSession::OnRecv(std::vector<Byte> data)
 {
     server_->Broadcast(data);
 }

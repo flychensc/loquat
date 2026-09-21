@@ -10,7 +10,7 @@ using namespace loquat;
 class EchoConnector : public Connector
 {
 public:
-    void OnRecv(const std::vector<Byte> &data) override
+    void OnRecv(std::vector<Byte> data) override
     {
         std::string str(data.begin(), data.end());
         std::cout << "Receive " << data.size() << " bytes: ";

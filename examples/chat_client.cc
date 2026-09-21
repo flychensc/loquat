@@ -15,7 +15,7 @@ class ChatClient : public Connector
 public:
     ChatClient(std::string name) : name_(name), Connector() {}
 
-    void OnRecv(const std::vector<Byte> &data) override
+    void OnRecv(std::vector<Byte> data) override
     {
         std::string str(data.begin(), data.end());
         std::cout << str << std::endl;

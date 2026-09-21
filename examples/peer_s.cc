@@ -13,7 +13,7 @@ using namespace loquat;
 class PeerS : public Peer
 {
 public:
-    void OnRecv(const SockAddr &fromaddr, const std::vector<Byte> &data) override
+    void OnRecv(const SockAddr &fromaddr, std::vector<Byte> data) override
     {
         char from_string[128];
         struct sockaddr_in *from = (struct sockaddr_in *)&fromaddr;
