@@ -24,9 +24,9 @@ namespace loquat
         sock_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (sock_fd_ == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "socket:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
         spdlog::debug("Connector:{}", sock_fd_);
     }
@@ -37,7 +37,7 @@ namespace loquat
         spdlog::debug("~Connector:{}", sock_fd_);
     }
 
-    void Connector::Bind(const string &ipaddr, int port)
+    void Connector::Bind(const std::string &ipaddr, int port)
     {
         int optval = 1;
         socklen_t optlen = sizeof(optval);
@@ -58,9 +58,9 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
         else if (AF_INET6 == domain_)
@@ -73,21 +73,21 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
 
         if (::bind(sock_fd_, toaddr, addrlen) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
     }
 
-    void Connector::Bind(const string &unix_path)
+    void Connector::Bind(const std::string &unix_path)
     {
         int optval = 1;
         socklen_t optlen = sizeof(optval);
@@ -103,13 +103,13 @@ namespace loquat
 
         if (::bind(sock_fd_, (struct sockaddr *)&addr, sizeof(addr)) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
     }
 
-    void Connector::Connect(const string &ipaddr, int port)
+    void Connector::Connect(const std::string &ipaddr, int port)
     {
         struct sockaddr_in addr4;
         struct sockaddr_in6 addr6;
@@ -126,9 +126,9 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
         else if (AF_INET6 == domain_)
@@ -141,9 +141,9 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
 
@@ -151,14 +151,14 @@ namespace loquat
         {
             if (errno != EINPROGRESS)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "connect:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
     }
 
-    void Connector::Connect(const string &unix_path)
+    void Connector::Connect(const std::string &unix_path)
     {
         struct sockaddr_un addr = {0};
 
@@ -169,9 +169,9 @@ namespace loquat
         {
             if (errno != EINPROGRESS)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "connect:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
     }

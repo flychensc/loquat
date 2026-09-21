@@ -27,9 +27,9 @@ namespace loquat
         sock_fd_ = ::accept(listen_fd, &addr.addr.sa, &addrlen);
         if (sock_fd_ == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "accept:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         /*2.set non-block*/
@@ -53,9 +53,9 @@ namespace loquat
         listen_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (listen_fd_ == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "socket:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         spdlog::debug("Listener:{}", listen_fd_);
@@ -68,7 +68,7 @@ namespace loquat
         spdlog::debug("~Listener:{}", listen_fd_);
     }
 
-    void Listener::Listen(const string &ipaddr, int port)
+    void Listener::Listen(const std::string &ipaddr, int port)
     {
         int optval = 1;
         socklen_t optlen = sizeof(optval);
@@ -89,9 +89,9 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
         else if (AF_INET6 == domain_)
@@ -104,28 +104,28 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
 
         if (::bind(listen_fd_, toaddr, addrlen) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         if (::listen(listen_fd_, backlog_) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "listen:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
     }
 
-    void Listener::Listen(const string &unix_path)
+    void Listener::Listen(const std::string &unix_path)
     {
         int optval = 1;
         socklen_t optlen = sizeof(optval);
@@ -141,16 +141,16 @@ namespace loquat
 
         if (::bind(listen_fd_, (struct sockaddr *)&addr, sizeof(addr)) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         if (::listen(listen_fd_, backlog_) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "listen:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
     }
 

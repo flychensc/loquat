@@ -28,17 +28,17 @@ namespace loquat
         epollfd_ = ::epoll_create1(0);
         if (epollfd_ == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "epoll_create1:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         efd_ = eventfd(0, EFD_NONBLOCK);
         if (efd_ == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "Failed to create eventfd:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         struct epoll_event ev = {0};
@@ -46,9 +46,9 @@ namespace loquat
         ev.data.fd = efd_;
         if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, efd_, &ev) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "Failed to add eventfd to epoll:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         spdlog::debug("Epoll:{}", epollfd_);

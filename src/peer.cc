@@ -22,9 +22,9 @@ namespace loquat
         sock_fd_ = ::socket(domain_, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (sock_fd_ == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "socket:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
 
         spdlog::debug("Peer:{}", sock_fd_);
@@ -58,9 +58,9 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
         else if (AF_INET6 == domain_)
@@ -73,17 +73,17 @@ namespace loquat
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
-                stringstream errinfo;
+                std::stringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
 
         if (::bind(sock_fd_, toaddr, addrlen) == -1)
         {
-            stringstream errinfo;
+            std::stringstream errinfo;
             errinfo << "bind:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
     }
 
