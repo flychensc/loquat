@@ -1,3 +1,4 @@
+#include <cstring>
 #include <sstream>
 #include <stdexcept>
 
@@ -15,7 +16,6 @@
 
 namespace loquat
 {
-    using namespace std;
 
     Peer::Peer(int domain) : domain_(domain)
     {
@@ -96,26 +96,27 @@ namespace loquat
         struct sockaddr_un addr = {0};
 
         addr.sun_family = domain_;
-        ::strcpy(addr.sun_path, unix_path.c_str());
+        std::strncpy(addr.sun_path, unix_path.c_str(), sizeof(addr.sun_path) - 1);
+        addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
 
         unlink(unix_path.c_str());
 
         if (::bind(sock_fd_, (struct sockaddr *)&addr, sizeof(addr)) == -1)
         {
-            stringstream errinfo;
+            std::ostringstream errinfo;
             errinfo << "bind:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            throw std::runtime_error(errinfo.str());
         }
     }
 
-    void Peer::Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data)
+    void Peer::Enqueue(const SockAddr &toaddr, std::vector<Byte> data)
     {
-        Datagram::Enqueue(toaddr, data);
+        Datagram::Enqueue(toaddr, std::move(data));
         if (PktsEnqueued() > 0)
             SetWriteReady();
     }
 
-    void Peer::Enqueue(const std::string &to_ip, int port, const std::vector<Byte> &data)
+    void Peer::Enqueue(const std::string &to_ip, int port, std::vector<Byte> data)
     {
         SockAddr toaddr;
 
@@ -128,9 +129,9 @@ namespace loquat
 
             if (::inet_pton(domain_, to_ip.c_str(), &toaddr.addr.v4.sin_addr) != 1)
             {
-                stringstream errinfo;
+                std::ostringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
         else if (AF_INET6 == domain_)
@@ -142,24 +143,25 @@ namespace loquat
 
             if (::inet_pton(domain_, to_ip.c_str(), &toaddr.addr.v6.sin6_addr) != 1)
             {
-                stringstream errinfo;
+                std::ostringstream errinfo;
                 errinfo << "inet_pton:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
         }
 
-        Enqueue(toaddr, data);
+        Enqueue(toaddr, std::move(data));
     }
 
-    void Peer::Enqueue(const std::string &to_path, const std::vector<Byte> &data)
+    void Peer::Enqueue(const std::string &to_path, std::vector<Byte> data)
     {
         SockAddr toaddr;
         toaddr.addrlen = sizeof(struct sockaddr_un);
 
         toaddr.addr.un.sun_family = domain_;
-        ::strcpy(toaddr.addr.un.sun_path, to_path.c_str());
+        std::strncpy(toaddr.addr.un.sun_path, to_path.c_str(), sizeof(toaddr.addr.un.sun_path) - 1);
+        toaddr.addr.un.sun_path[sizeof(toaddr.addr.un.sun_path) - 1] = '\0';
 
-        Enqueue(toaddr, data);
+        Enqueue(toaddr, std::move(data));
     }
 
     void Peer::OnWrite(int sock_fd)
@@ -171,11 +173,13 @@ namespace loquat
 
     void Peer::SetWriteReady()
     {
-        Epoll::GetInstance()->DataOutReady(Sock());
+        if (auto e = epoll())
+            e->DataOutReady(Sock());
     }
 
     void Peer::ClearWriteReady()
     {
-        Epoll::GetInstance()->DataOutClear(Sock());
+        if (auto e = epoll())
+            e->DataOutClear(Sock());
     }
 }

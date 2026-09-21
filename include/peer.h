@@ -33,20 +33,20 @@ namespace loquat
          */
         void Bind(const std::string &unix_path);
 
-        void Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data);
+        void Enqueue(const SockAddr &toaddr, std::vector<Byte> data);
 
         /** @brief enqueue output data
-         * @param ipaddr destination ip
-         * @param port destination port
-         * @param data output data
+         *  @param ipaddr destination ip
+         *  @param port destination port
+         *  @param data output data (按值传递，支持 move)
          */
-        void Enqueue(const std::string &to_ip, int port, const std::vector<Byte> &data);
+        void Enqueue(const std::string &to_ip, int port, std::vector<Byte> data);
 
         /** @brief enqueue output data
-         * @param to_path unix path
-         * @param data output data
+         *  @param to_path unix path
+         *  @param data output data (按值传递，支持 move)
          */
-        void Enqueue(const std::string &to_path, const std::vector<Byte> &data);
+        void Enqueue(const std::string &to_path, std::vector<Byte> data);
 
     protected:
         void OnWrite(int sock_fd) override;

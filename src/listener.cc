@@ -1,3 +1,4 @@
+#include <cstring>
 #include <sstream>
 #include <stdexcept>
 
@@ -16,7 +17,6 @@
 
 namespace loquat
 {
-    using namespace std;
 
     Connection::Connection(Stream::Type type, int listen_fd) : Stream(type)
     {
@@ -134,7 +134,8 @@ namespace loquat
         struct sockaddr_un addr = {0};
 
         addr.sun_family = domain_;
-        ::strcpy(addr.sun_path, unix_path.c_str());
+        std::strncpy(addr.sun_path, unix_path.c_str(), sizeof(addr.sun_path) - 1);
+        addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
 
         unlink(unix_path.c_str());
 
@@ -153,9 +154,9 @@ namespace loquat
         }
     }
 
-    void Connection::Enqueue(const std::vector<Byte> &data)
+    void Connection::Enqueue(std::vector<Byte> data)
     {
-        Stream::Enqueue(data);
+        Stream::Enqueue(std::move(data));
         if (PktsEnqueued() > 0)
             SetWriteReady();
     }
@@ -169,11 +170,13 @@ namespace loquat
 
     void Connection::SetWriteReady()
     {
-        Epoll::GetInstance()->DataOutReady(Sock());
+        if (auto e = epoll())
+            e->DataOutReady(Sock());
     }
 
     void Connection::ClearWriteReady()
     {
-        Epoll::GetInstance()->DataOutClear(Sock());
+        if (auto e = epoll())
+            e->DataOutClear(Sock());
     }
 }

@@ -45,11 +45,9 @@ namespace loquat
         void Connect(const std::string &unix_path);
 
         /** @brief enqueue output data
-         * @param data output data
+         *  @param data output data (按值传递，支持 move)
          */
-        void Enqueue(const std::vector<Byte> &data);
-
-        void OnRead(int sock_fd) override;
+        void Enqueue(std::vector<Byte> data);
 
     protected:
         void OnWrite(int sock_fd) override;
@@ -62,6 +60,6 @@ namespace loquat
 
         int domain_;
         int sock_fd_;
-        bool connect_flag_;
+        bool connected_;
     };
 }

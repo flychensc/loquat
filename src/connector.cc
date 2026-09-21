@@ -1,3 +1,4 @@
+#include <cstring>
 #include <sstream>
 #include <stdexcept>
 
@@ -15,11 +16,10 @@
 
 namespace loquat
 {
-    using namespace std;
 
     Connector::Connector(Stream::Type type, int domain) : Stream(type),
                                                           domain_(domain),
-                                                          connect_flag_(false)
+                                                          connected_(false)
     {
         sock_fd_ = ::socket(domain_, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (sock_fd_ == -1)
@@ -96,7 +96,8 @@ namespace loquat
         struct sockaddr_un addr = {0};
 
         addr.sun_family = domain_;
-        ::strcpy(addr.sun_path, unix_path.c_str());
+        std::strncpy(addr.sun_path, unix_path.c_str(), sizeof(addr.sun_path) - 1);
+        addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
 
         unlink(unix_path.c_str());
 
@@ -175,44 +176,36 @@ namespace loquat
         }
     }
 
-    void Connector::Enqueue(const std::vector<Byte> &data)
+    void Connector::Enqueue(std::vector<Byte> data)
     {
-        Stream::Enqueue(data);
+        Stream::Enqueue(std::move(data));
         if (PktsEnqueued() > 0)
             SetWriteReady();
     }
 
-    void Connector::OnRead(int sock_fd)
+    void Connector::OnWrite(int sock_fd)
     {
-        if (connect_flag_)
+        if (!connected_)
         {
-            Stream::OnRead(sock_fd);
-        }
-        else
-        {
-            int optval;
+            // 非阻塞 connect 完成时会触发 EPOLLOUT，此时检查 SO_ERROR 确认连接
+            int optval = 0;
             socklen_t optlen = sizeof(optval);
-
             if (::getsockopt(sock_fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
             {
-                stringstream errinfo;
+                std::ostringstream errinfo;
                 errinfo << "getsockopt:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
             }
             if (optval != 0)
             {
-                stringstream errinfo;
-                errinfo << "connect:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                std::ostringstream errinfo;
+                errinfo << "connect failed:" << strerror(optval);
+                throw std::runtime_error(errinfo.str());
             }
-
-            /*connected*/
-            connect_flag_ = true;
+            connected_ = true;
+            spdlog::debug("Connector connected:{}", sock_fd);
         }
-    }
 
-    void Connector::OnWrite(int sock_fd)
-    {
         Stream::OnWrite(sock_fd);
         if (PktsEnqueued() == 0)
             ClearWriteReady();
@@ -220,11 +213,13 @@ namespace loquat
 
     void Connector::SetWriteReady()
     {
-        Epoll::GetInstance()->DataOutReady(Sock());
+        if (auto e = epoll())
+            e->DataOutReady(Sock());
     }
 
     void Connector::ClearWriteReady()
     {
-        Epoll::GetInstance()->DataOutClear(Sock());
+        if (auto e = epoll())
+            e->DataOutClear(Sock());
     }
 }

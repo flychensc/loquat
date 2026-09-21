@@ -11,14 +11,13 @@
 
 namespace loquat
 {
-    using namespace std;
 
-    void Stream::Enqueue(const vector<Byte> &data)
+    void Stream::Enqueue(std::vector<Byte> data)
     {
         std::lock_guard<std::mutex> lock(mutex_);
 
         auto &outbuf = io_buffer_.write_queue_;
-        outbuf.push_back(data);
+        outbuf.push_back(std::move(data));
     }
 
     void Stream::SetBytesNeeded(std::size_t bytes_needed)
@@ -29,7 +28,7 @@ namespace loquat
 
         if (bytes_needed == 0)
         {
-            spdlog::warn("bytes_needed 0");
+            spdlog::debug("bytes_needed 0");
         }
 
         // Resize if needed
@@ -37,8 +36,6 @@ namespace loquat
         if (bytes_needed > inbuf.size())
         {
             inbuf.resize(bytes_needed);
-
-            spdlog::warn("resize inbuf");
         }
     }
 
@@ -70,14 +67,13 @@ namespace loquat
             {
                 if (errno == EAGAIN || errno == EWOULDBLOCK)
                 {
-                    written = 0;
                     return;
                 }
                 else
                 {
-                    stringstream errinfo;
+                    std::ostringstream errinfo;
                     errinfo << "send:" << strerror(errno);
-                    throw runtime_error(errinfo.str());
+                    throw std::runtime_error(errinfo.str());
                 }
             }
             else if (written < len)
@@ -108,58 +104,19 @@ namespace loquat
 
     void Stream::recvUnframed(int sock_fd)
     {
-        auto &inbuf = io_buffer_.read_buffer_;
-
-        auto buf = inbuf.data() + io_buffer_.read_bytes_;
-        auto len = inbuf.size();
-
-        auto bytes_in = ::recv(sock_fd, buf, len, 0);
-        if (bytes_in <= 0)
-        {
-            if (bytes_in == 0)
-            {
-                /* Socket is closed */
-                return;
-            }
-
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                return;
-            }
-
-            stringstream errinfo;
-            errinfo << "recv:" << strerror(errno);
-            throw runtime_error(errinfo.str());
-        }
-
-        io_buffer_.read_bytes_ = bytes_in;
-
-        vector<Byte> recv_data;
-        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
-
-        io_buffer_.read_bytes_ = 0;
-
-        // invoke callback
-        OnRecv(recv_data);
-    }
-
-    void Stream::recvFramed(int sock_fd)
-    {
-        vector<Byte> recv_data;
-
+        std::vector<Byte> recv_data;
         {
             std::lock_guard<std::mutex> lock(mutex_);
-
             auto &inbuf = io_buffer_.read_buffer_;
 
-            auto inbuf_start = inbuf.data() + io_buffer_.read_bytes_;
+            auto buf = inbuf.data() + io_buffer_.read_bytes_;
+            auto len = inbuf.size();
 
-            auto bytes_in = ::recv(sock_fd, inbuf_start, io_buffer_.bytes_needed_, 0);
+            auto bytes_in = ::recv(sock_fd, buf, len, 0);
             if (bytes_in <= 0)
             {
                 if (bytes_in == 0)
                 {
-                    /* Socket is closed */
                     return;
                 }
 
@@ -168,25 +125,63 @@ namespace loquat
                     return;
                 }
 
-                stringstream errinfo;
+                std::ostringstream errinfo;
                 errinfo << "recv:" << strerror(errno);
-                throw runtime_error(errinfo.str());
+                throw std::runtime_error(errinfo.str());
+            }
+
+            io_buffer_.read_bytes_ = bytes_in;
+            recv_data.assign(io_buffer_.read_buffer_.begin(),
+                             io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
+            io_buffer_.read_bytes_ = 0;
+        }
+
+        // invoke callback outside the lock
+        OnRecv(std::move(recv_data));
+    }
+
+    void Stream::recvFramed(int sock_fd)
+    {
+        std::vector<Byte> recv_data;
+
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+
+            auto &inbuf = io_buffer_.read_buffer_;
+            auto inbuf_start = inbuf.data() + io_buffer_.read_bytes_;
+
+            auto bytes_in = ::recv(sock_fd, inbuf_start, io_buffer_.bytes_needed_, 0);
+            if (bytes_in <= 0)
+            {
+                if (bytes_in == 0)
+                {
+                    return;
+                }
+
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    return;
+                }
+
+                std::ostringstream errinfo;
+                errinfo << "recv:" << strerror(errno);
+                throw std::runtime_error(errinfo.str());
             }
 
             io_buffer_.read_bytes_ += bytes_in;
 
             if (io_buffer_.bytes_needed_ == io_buffer_.read_bytes_)
             {
-                recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
-
+                recv_data.assign(io_buffer_.read_buffer_.begin(),
+                                 io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
                 io_buffer_.read_bytes_ = 0;
             }
         }
 
-        if (recv_data.size() > 0)
+        if (!recv_data.empty())
         {
-            // invoke callback
-            OnRecv(recv_data);
+            // invoke callback outside the lock
+            OnRecv(std::move(recv_data));
         }
     }
 }

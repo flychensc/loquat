@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-project(loquat)
+project(loquat LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
 option(SAMPLE "Enable the sample feature for demonstration purposes." ON)
 option(DEBUG "Enable debug mode for detailed logging and error checking." OFF)
@@ -8,9 +16,10 @@ option(TEST "Enable building and running unit tests using Google Test." ON)
 
 if (DEBUG)
     set(CMAKE_BUILD_TYPE Debug)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-else()
-    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion)
 endif()
 
 if (TEST)

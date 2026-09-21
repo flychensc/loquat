@@ -4,6 +4,9 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
+
+#include <sys/epoll.h>
 
 #include "pollable.h"
 
@@ -12,7 +15,7 @@ namespace loquat
     class Epoll
     {
     public:
-        static const int kMaxEvents = 20;
+        static constexpr int kMaxEvents = 20;
 
         static std::shared_ptr<Epoll> GetInstance();
 
@@ -63,6 +66,19 @@ namespace loquat
         int efd_;
         int maxevents_;
         std::atomic<bool> loop_flag_;
+
+        /** @brief 根据 Pollable 类型组合构建 epoll_event 的 events 字段
+         *  @param poller_ptr 对应的 Pollable 对象
+         *  @param want_out   是否需要 EPOLLOUT（用于控制写就绪）
+         *  @param want_in    是否需要 EPOLLIN（用于 DataInPause）
+         *  @return 构建好的 epoll_event
+         */
+        struct epoll_event buildEpollEvents(const std::shared_ptr<Pollable> &poller_ptr,
+                                            bool want_out = true,
+                                            bool want_in = true);
+
+        /** @brief 消费 eventfd，清空唤醒信号 */
+        void onEventFd();
 
         // handle tcp accept event
         void onSocketAccept(int listen_sock);

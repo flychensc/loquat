@@ -25,9 +25,9 @@ namespace loquat
         int Sock() { return sock_fd_; };
 
         /** @brief enqueue output data
-         * @param data output data
+         *  @param data output data (按值传递，支持 move)
          */
-        void Enqueue(const std::vector<Byte> &data);
+        void Enqueue(std::vector<Byte> data);
 
     protected:
         void OnWrite(int sock_fd) override;
