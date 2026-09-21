@@ -22,7 +22,7 @@ namespace
             SetBytesNeeded(current_bytes_need_);
         }
 
-        void OnRecv(const std::vector<loquat::Byte> &data) override
+        void OnRecv(std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data.size(), current_bytes_need_);
 
@@ -48,7 +48,7 @@ namespace
             SetBytesNeeded(current_bytes_need_);
         }
 
-        void OnRecv(const std::vector<loquat::Byte> &data) override
+        void OnRecv(std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data.size(), current_bytes_need_);
 
@@ -115,7 +115,7 @@ namespace
             SetBytesNeeded(4);
         }
 
-        void OnRecv(const std::vector<loquat::Byte> &data) override
+        void OnRecv(std::vector<loquat::Byte> data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
@@ -147,7 +147,7 @@ namespace
             SetBytesNeeded(4);
         }
 
-        void OnRecv(const std::vector<loquat::Byte> &data) override
+        void OnRecv(std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data.size(), 4);
             Connection::Enqueue(data);

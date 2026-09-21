@@ -17,7 +17,7 @@ namespace
     public:
         TestPeerS() : loquat::Peer(AF_INET6) {}
 
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
 
@@ -30,7 +30,7 @@ namespace
     public:
         TestPeerC() : loquat::Peer(AF_INET6) {}
 
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
@@ -64,7 +64,7 @@ namespace
     public:
         TestEcho() : loquat::Peer(AF_INET6) {}
 
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             Enqueue(fromaddr, data);
         }
@@ -75,7 +75,7 @@ namespace
     public:
         TestShouter() : loquat::Peer(AF_INET6) {}
 
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
@@ -85,7 +85,7 @@ namespace
             }
         }
 
-        void Enqueue(const std::string &to_ip, int port, const std::vector<loquat::Byte> &data)
+        void Enqueue(const std::string &to_ip, int port, std::vector<loquat::Byte> data)
         {
             Peer::Enqueue(to_ip, port, data);
 
