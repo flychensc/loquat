@@ -13,7 +13,7 @@ using namespace loquat;
 class ChatClient : public Connector
 {
 public:
-    ChatClient(std::string name) : name_(name), Connector() {}
+    ChatClient(std::string name) : Connector(), name_(name)  {}
 
     void OnRecv(std::vector<Byte> data) override
     {
@@ -38,8 +38,8 @@ class Console : public ReadWritable
 {
 public:
     Console(std::shared_ptr<ChatClient> client_ptr) : client_(client_ptr) {}
-    void OnWrite(int sock_fd) override { Epoll::GetInstance()->DataOutClear(STDIN_FILENO); }
-    void OnRead(int sock_fd) override
+    void OnWrite([[maybe_unused]]int sock_fd) override { Epoll::GetInstance()->DataOutClear(STDIN_FILENO); }
+    void OnRead([[maybe_unused]]int sock_fd) override
     {
         std::string msg;
         std::getline(std::cin, msg);
@@ -60,7 +60,7 @@ private:
 
 int main(int argc,     // Number of strings in array argv
          char *argv[], // Array of command-line argument strings
-         char *envp[]) // Array of environment variable strings
+         [[maybe_unused]]char *envp[]) // Array of environment variable strings
 {
     const char *name = "Emma"; // default
     if (argc > 1)

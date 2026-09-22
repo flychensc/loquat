@@ -45,16 +45,16 @@ namespace loquat
 
         struct sockaddr_in addr4;
         struct sockaddr_in6 addr6;
-        struct sockaddr *toaddr;
-        socklen_t addrlen;
+        struct sockaddr *toaddr = nullptr;
+        socklen_t addrlen = 0;
 
         if (AF_INET == domain_)
         {
             toaddr = (struct sockaddr *)&addr4;
             addrlen = sizeof(struct sockaddr_in);
 
-            addr4.sin_family = domain_;
-            addr4.sin_port = ::htons(port);
+            addr4.sin_family = static_cast<sa_family_t>(domain_);
+            addr4.sin_port = ::htons(static_cast<uint16_t>(port));
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
@@ -68,8 +68,8 @@ namespace loquat
             toaddr = (struct sockaddr *)&addr6;
             addrlen = sizeof(struct sockaddr_in6);
 
-            addr6.sin6_family = domain_;
-            addr6.sin6_port = ::htons(port);
+            addr6.sin6_family = static_cast<sa_family_t>(domain_);
+            addr6.sin6_port = ::htons(static_cast<uint16_t>(port));
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
@@ -93,9 +93,9 @@ namespace loquat
         socklen_t optlen = sizeof(optval);
         ::setsockopt(sock_fd_, SOL_SOCKET, SO_REUSEADDR, &optval, optlen);
 
-        struct sockaddr_un addr = {0};
+        struct sockaddr_un addr = {};
 
-        addr.sun_family = domain_;
+        addr.sun_family = static_cast<sa_family_t>(domain_);
         std::strncpy(addr.sun_path, unix_path.c_str(), sizeof(addr.sun_path) - 1);
         addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
 
@@ -113,16 +113,16 @@ namespace loquat
     {
         struct sockaddr_in addr4;
         struct sockaddr_in6 addr6;
-        struct sockaddr *toaddr;
-        socklen_t addrlen;
+        struct sockaddr *toaddr = nullptr;
+        socklen_t addrlen = 0;
 
         if (AF_INET == domain_)
         {
             toaddr = (struct sockaddr *)&addr4;
             addrlen = sizeof(struct sockaddr_in);
 
-            addr4.sin_family = domain_;
-            addr4.sin_port = ::htons(port);
+            addr4.sin_family = static_cast<sa_family_t>(domain_);
+            addr4.sin_port = ::htons(static_cast<uint16_t>(port));
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr4.sin_addr) != 1)
             {
@@ -136,8 +136,8 @@ namespace loquat
             toaddr = (struct sockaddr *)&addr6;
             addrlen = sizeof(struct sockaddr_in6);
 
-            addr6.sin6_family = domain_;
-            addr6.sin6_port = ::htons(port);
+            addr6.sin6_family = static_cast<sa_family_t>(domain_);
+            addr6.sin6_port = ::htons(static_cast<uint16_t>(port));
 
             if (::inet_pton(domain_, ipaddr.c_str(), &addr6.sin6_addr) != 1)
             {
@@ -160,9 +160,9 @@ namespace loquat
 
     void Connector::Connect(const std::string &unix_path)
     {
-        struct sockaddr_un addr = {0};
+        struct sockaddr_un addr = {};
 
-        addr.sun_family = domain_;
+        addr.sun_family = static_cast<sa_family_t>(domain_);
         ::strcpy(addr.sun_path, unix_path.c_str());
 
         if (::connect(sock_fd_, (struct sockaddr *)&addr, sizeof(addr)) == -1)

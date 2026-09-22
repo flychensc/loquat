@@ -57,7 +57,7 @@ namespace loquat
 
         auto &outbuf = io_buffer_.write_queue_;
 
-        return outbuf.size();
+        return static_cast<int>(outbuf.size());
     }
 
     void Datagram::OnRead(int sock_fd)

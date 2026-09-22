@@ -41,7 +41,7 @@ namespace loquat
             throw std::runtime_error(errinfo.str());
         }
 
-        struct epoll_event ev = {0};
+        struct epoll_event ev = {};
         ev.events = EPOLLIN;
         ev.data.fd = efd_;
         if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, efd_, &ev) == -1)
@@ -65,7 +65,7 @@ namespace loquat
                                                bool want_out,
                                                bool want_in)
     {
-        struct epoll_event ev = {0};
+        struct epoll_event ev = {};
 
         auto acceptable_ptr = std::dynamic_pointer_cast<Acceptable>(poller_ptr);
         if (acceptable_ptr)

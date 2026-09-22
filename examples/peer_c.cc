@@ -27,9 +27,9 @@ public:
     }
 };
 
-int main(int argc,     // Number of strings in array argv
-         char *argv[], // Array of command-line argument strings
-         char *envp[]) // Array of environment variable strings
+int main([[maybe_unused]]int argc,     // Number of strings in array argv
+         [[maybe_unused]]char *argv[], // Array of command-line argument strings
+         [[maybe_unused]]char *envp[]) // Array of environment variable strings
 {
     auto p_peer_c = std::make_shared<PeerC>();
 

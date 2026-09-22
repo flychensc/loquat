@@ -45,7 +45,7 @@ namespace loquat
 
         auto &outbuf = io_buffer_.write_queue_;
 
-        return outbuf.size();
+        return static_cast<int>(outbuf.size());
     }
 
     void Stream::OnWrite(int sock_fd)
@@ -76,7 +76,7 @@ namespace loquat
                     throw std::runtime_error(errinfo.str());
                 }
             }
-            else if (written < len)
+            else if (static_cast<std::size_t>(written) < len)
             {
                 io_buffer_.write_queue_head_offset_ += written;
                 return;

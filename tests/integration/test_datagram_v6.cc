@@ -30,7 +30,7 @@ namespace
     public:
         TestPeerC() : loquat::Peer(AF_INET6) {}
 
-        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
+        void OnRecv([[maybe_unused]]const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
@@ -75,7 +75,7 @@ namespace
     public:
         TestShouter() : loquat::Peer(AF_INET6) {}
 
-        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
+        void OnRecv([[maybe_unused]]const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
