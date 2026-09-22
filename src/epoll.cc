@@ -80,8 +80,10 @@ namespace loquat
         auto readwritable_ptr = std::dynamic_pointer_cast<ReadWritable>(poller_ptr);
         if (readwritable_ptr)
         {
-            if (want_in)  ev.events |= EPOLLIN;
-            if (want_out) ev.events |= EPOLLOUT;
+            if (want_in)
+                ev.events |= EPOLLIN;
+            if (want_out)
+                ev.events |= EPOLLOUT;
         }
 
         return ev;

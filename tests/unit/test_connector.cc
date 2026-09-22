@@ -6,7 +6,7 @@ namespace
     class TestConnector : public loquat::Connector
     {
     public:
-        void OnRecv([[maybe_unused]]std::vector<loquat::Byte> data) {}
+        void OnRecv([[maybe_unused]] std::vector<loquat::Byte> data) {}
     };
 
     TEST(Connector, destructor)

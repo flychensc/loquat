@@ -31,8 +31,8 @@ namespace
 
             if (data.size() == 1024)
             {
-            loquat::Epoll::GetInstance()->Terminate();
-        }
+                loquat::Epoll::GetInstance()->Terminate();
+            }
         }
 
     private:
@@ -122,9 +122,9 @@ namespace
             EXPECT_EQ(data.size(), 4);
 
             std::string flag(data.begin(), data.end());
-                if (flag == "EXIT")
-                {
-                    loquat::Epoll::GetInstance()->Terminate();
+            if (flag == "EXIT")
+            {
+                loquat::Epoll::GetInstance()->Terminate();
             }
         }
 

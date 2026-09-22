@@ -8,7 +8,7 @@ namespace
     public:
         TestListener() : loquat::Listener(10) {};
 
-        void OnAccept([[maybe_unused]]int listen_sock) {}
+        void OnAccept([[maybe_unused]] int listen_sock) {}
     };
 
     TEST(Listener, destructor)
