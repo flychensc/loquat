@@ -13,7 +13,7 @@ using namespace loquat;
 class PeerS : public Peer
 {
 public:
-    void OnRecv(const SockAddr &fromaddr, const std::vector<Byte> &data) override
+    void OnRecv(const SockAddr &fromaddr, std::vector<Byte> data) override
     {
         char from_string[128];
         struct sockaddr_in *from = (struct sockaddr_in *)&fromaddr;
@@ -28,9 +28,9 @@ public:
     }
 };
 
-int main(int argc,     // Number of strings in array argv
-         char *argv[], // Array of command-line argument strings
-         char *envp[]) // Array of environment variable strings
+int main([[maybe_unused]] int argc,     // Number of strings in array argv
+         [[maybe_unused]] char *argv[], // Array of command-line argument strings
+         [[maybe_unused]] char *envp[]) // Array of environment variable strings
 {
     auto p_peer_s = std::make_shared<PeerS>();
 

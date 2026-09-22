@@ -10,7 +10,7 @@ class EchoConnection : public Connection
 public:
     EchoConnection(int listen_fd) : Connection(listen_fd) {}
 
-    void OnRecv(const std::vector<Byte> &data) override
+    void OnRecv(std::vector<Byte> data) override
     {
         std::string str(data.begin(), data.end());
         std::cout << "Receive " << data.size() << " bytes: ";
@@ -38,9 +38,9 @@ public:
     }
 };
 
-int main(int argc,     // Number of strings in array argv
-         char *argv[], // Array of command-line argument strings
-         char *envp[]) // Array of environment variable strings
+int main([[maybe_unused]] int argc,     // Number of strings in array argv
+         [[maybe_unused]] char *argv[], // Array of command-line argument strings
+         [[maybe_unused]] char *envp[]) // Array of environment variable strings
 {
     auto p_listener = std::make_shared<EchoListener>();
 

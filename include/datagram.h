@@ -12,7 +12,7 @@ namespace loquat
     class Datagram : public ReadWritable
     {
     public:
-        void Enqueue(const SockAddr &toaddr, const std::vector<Byte> &data);
+        void Enqueue(const SockAddr &toaddr, std::vector<Byte> data);
 
     protected:
         /** @brief Total pkts queued
@@ -20,7 +20,11 @@ namespace loquat
          */
         int PktsEnqueued(void);
 
-        virtual void OnRecv(const SockAddr &fromaddr, const std::vector<Byte> &data) = 0;
+        /** @brief 用户需要 override 来接收数据报
+         *  @param fromaddr 来源地址
+         *  @param data 收到的数据 (按值传递，可 move)
+         */
+        virtual void OnRecv(const SockAddr &fromaddr, std::vector<Byte> data) = 0;
 
         void OnRead(int sock_fd) override;
         void OnWrite(int sock_fd) override;

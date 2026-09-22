@@ -15,7 +15,7 @@ namespace
     class TestPeerS : public loquat::Peer
     {
     public:
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data, stringToVector("Em, it's happy to see you."));
 
@@ -26,7 +26,7 @@ namespace
     class TestPeerC : public loquat::Peer
     {
     public:
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv([[maybe_unused]] const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             EXPECT_EQ(data, stringToVector("Good to see you too."));
 
@@ -58,7 +58,7 @@ namespace
     class TestEcho : public loquat::Peer
     {
     public:
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv(const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             Enqueue(fromaddr, data);
         }
@@ -67,7 +67,7 @@ namespace
     class TestShouter : public loquat::Peer
     {
     public:
-        void OnRecv(const loquat::SockAddr &fromaddr, const std::vector<loquat::Byte> &data) override
+        void OnRecv([[maybe_unused]] const loquat::SockAddr &fromaddr, std::vector<loquat::Byte> data) override
         {
             Echoes.insert(Echoes.end(), data.begin(), data.end());
 
@@ -77,7 +77,7 @@ namespace
             }
         }
 
-        void Enqueue(const std::string &to_ip, int port, const std::vector<loquat::Byte> &data)
+        void Enqueue(const std::string &to_ip, int port, std::vector<loquat::Byte> data)
         {
             Peer::Enqueue(to_ip, port, data);
 

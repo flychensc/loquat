@@ -1,7 +1,8 @@
 #pragma once
 
 #include <cinttypes>
-#include <list>
+#include <cstring>
+#include <deque>
 #include <tuple>
 #include <vector>
 
@@ -27,7 +28,7 @@ namespace loquat
 
         SockAddr() : addrlen(0)
         {
-            memset(this, 0, sizeof(*this));
+            std::memset(&addr, 0, sizeof(addr));
         }
     };
 
@@ -50,7 +51,7 @@ namespace loquat
         std::size_t bytes_needed_;
 
         /* Write queue */
-        std::list<std::vector<Byte>> write_queue_;
+        std::deque<std::vector<Byte>> write_queue_;
         /* Bytes already sent out from head of write_queue */
         std::size_t write_queue_head_offset_;
     };
@@ -70,6 +71,6 @@ namespace loquat
         std::size_t read_bytes_;
 
         /* Write queue */
-        std::list<std::tuple<SockAddr, std::vector<Byte>>> write_queue_;
+        std::deque<std::tuple<SockAddr, std::vector<Byte>>> write_queue_;
     };
 }

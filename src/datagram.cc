@@ -10,14 +10,13 @@
 
 namespace loquat
 {
-    using namespace std;
 
-    void Datagram::Enqueue(const SockAddr &toaddr, const vector<Byte> &data)
+    void Datagram::Enqueue(const SockAddr &toaddr, std::vector<Byte> data)
     {
         std::lock_guard<std::mutex> lock(mutex_);
 
         auto &outbuf = io_buffer_.write_queue_;
-        outbuf.push_back(make_tuple(toaddr, data));
+        outbuf.push_back(std::make_tuple(toaddr, std::move(data)));
     }
 
     void Datagram::OnWrite(int sock_fd)
@@ -29,8 +28,8 @@ namespace loquat
         if (!outbuf.empty())
         {
             auto &entry = outbuf.front();
-            auto &dest_addr = get<0>(entry);
-            auto &msg = get<1>(entry);
+            auto &dest_addr = std::get<0>(entry);
+            auto &msg = std::get<1>(entry);
 
             auto written = ::sendto(sock_fd, msg.data(), msg.size(), 0, &dest_addr.addr.sa, dest_addr.addrlen);
 
@@ -38,18 +37,15 @@ namespace loquat
             {
                 if (errno == EAGAIN || errno == EWOULDBLOCK)
                 {
-                    written = 0;
                     return;
                 }
                 else
                 {
-                    stringstream errinfo;
+                    std::ostringstream errinfo;
                     errinfo << "sendto:" << strerror(errno);
-                    throw runtime_error(errinfo.str());
+                    throw std::runtime_error(errinfo.str());
                 }
             }
-            // [Q] this branch is unreachable, right?
-            assert(written == msg.size());
 
             outbuf.pop_front();
         }
@@ -61,7 +57,7 @@ namespace loquat
 
         auto &outbuf = io_buffer_.write_queue_;
 
-        return outbuf.size();
+        return static_cast<int>(outbuf.size());
     }
 
     void Datagram::OnRead(int sock_fd)
@@ -69,29 +65,31 @@ namespace loquat
         SockAddr src_addr;
         src_addr.addrlen = sizeof(SockAddr);
 
-        auto &inbuf = io_buffer_.read_buffer_;
-
-        auto bytes_in = ::recvfrom(sock_fd, inbuf.data(), inbuf.size(), 0, &src_addr.addr.sa, &src_addr.addrlen);
-        if (bytes_in < 0)
+        std::vector<Byte> recv_data;
         {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto &inbuf = io_buffer_.read_buffer_;
+
+            auto bytes_in = ::recvfrom(sock_fd, inbuf.data(), inbuf.size(), 0, &src_addr.addr.sa, &src_addr.addrlen);
+            if (bytes_in < 0)
             {
-                return;
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    return;
+                }
+
+                std::ostringstream errinfo;
+                errinfo << "recvfrom:" << strerror(errno);
+                throw std::runtime_error(errinfo.str());
             }
 
-            stringstream errinfo;
-            errinfo << "recvfrom:" << strerror(errno);
-            throw runtime_error(errinfo.str());
+            io_buffer_.read_bytes_ = bytes_in;
+            recv_data.assign(io_buffer_.read_buffer_.begin(),
+                             io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
+            io_buffer_.read_bytes_ = 0;
         }
 
-        io_buffer_.read_bytes_ = bytes_in;
-
-        vector<Byte> recv_data;
-        recv_data.assign(io_buffer_.read_buffer_.begin(), io_buffer_.read_buffer_.begin() + io_buffer_.read_bytes_);
-
-        io_buffer_.read_bytes_ = 0;
-
-        // invoke callback
-        OnRecv(src_addr, recv_data);
+        // invoke callback outside the lock
+        OnRecv(src_addr, std::move(recv_data));
     }
 }
