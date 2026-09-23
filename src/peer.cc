@@ -45,8 +45,8 @@ namespace loquat
 
         struct sockaddr_in addr4;
         struct sockaddr_in6 addr6;
-        struct sockaddr *toaddr;
-        socklen_t addrlen;
+        struct sockaddr *toaddr = nullptr;
+        socklen_t addrlen = 0;
 
         if (AF_INET == domain_)
         {

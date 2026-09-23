@@ -208,7 +208,7 @@ namespace loquat
     void Epoll::onEventFd()
     {
         uint64_t val = 0;
-        ::read(efd_, &val, sizeof(val)); // consume the wakeup signal
+        [[maybe_unused]] ssize_t n = ::read(efd_, &val, sizeof(val)); // consume the wakeup signal
     }
 
     void Epoll::Wait()
@@ -292,7 +292,7 @@ namespace loquat
     {
         loop_flag_.store(false, std::memory_order_release);
         uint64_t value = 1;
-        ::write(efd_, &value, sizeof(value)); // wake up epoll_wait
+        [[maybe_unused]] ssize_t n = ::write(efd_, &value, sizeof(value)); // wake up epoll_wait
     }
 
     void Epoll::onSocketAccept(int listen_sock)
